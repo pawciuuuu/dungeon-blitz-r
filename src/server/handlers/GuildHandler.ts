@@ -446,24 +446,30 @@ export class GuildHandler {
     }
 
     static async refreshClientGuildState(client: Client): Promise<void> {
-        if (!client.character) {
+        const character = client.character;
+        if (!character) {
             return;
         }
 
-        const guildName = GuildHandler.getGuildName(client.character);
+        const guildName = GuildHandler.getGuildName(character);
         if (!guildName) {
-            client.character.guild = {};
+            GuildHandler.setCharacterGuild(character, null, null);
             GuildHandler.syncOnlineClientCharacter(client);
             return;
         }
 
         const members = await GuildHandler.loadGuildMembers(guildName);
+        // Session can disconnect or clear identity while member lookup is in flight.
+        if (!client.character) {
+            return;
+        }
+
         const ownRecord = members.find((record) =>
             normalizeCharacterKey(record.character.name) === normalizeCharacterKey(client.character?.name)
         );
 
         if (!ownRecord) {
-            client.character.guild = {};
+            GuildHandler.setCharacterGuild(client.character, null, null);
             GuildHandler.syncOnlineClientCharacter(client);
             return;
         }
@@ -483,14 +489,22 @@ export class GuildHandler {
 
         const guildName = GuildHandler.getGuildName(client.character);
         void GuildHandler.refreshClientGuildState(client).then(async () => {
+            if (!client.character) {
+                return;
+            }
+
             const members = await GuildHandler.loadGuildMembers(guildName);
+            if (!client.character) {
+                return;
+            }
+
             for (const record of members) {
                 const other = GuildHandler.getOnlineSession(record.character.name);
                 if (!other || other === client) {
                     continue;
                 }
 
-                GuildHandler.sendGuildMemberOnline(other, client.character!);
+                GuildHandler.sendGuildMemberOnline(other, client.character);
             }
 
             await GuildHandler.broadcastGuildUpdate(guildName);

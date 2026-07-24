@@ -15,26 +15,13 @@ export type PacketHandlerMetrics = {
 export class PacketRouter {
     private handlers: Map<number, PacketHandler> = new Map();
     private metrics: Map<number, PacketHandlerMetrics> = new Map();
-    private lastQueueDepthWarningAt = new WeakMap<Client, number>();
-    private readonly slowQueueWaitMs = Math.max(10, Number(process.env.PACKET_SLOW_QUEUE_WAIT_MS ?? 100));
-    private readonly slowHandlerMs = Math.max(10, Number(process.env.PACKET_SLOW_HANDLER_MS ?? 50));
-    private readonly excessiveQueueDepth = Math.max(10, Number(process.env.PACKET_EXCESSIVE_QUEUE_DEPTH ?? 100));
 
     public register(packetId: number, handler: PacketHandler): void {
         this.handlers.set(packetId, handler);
     }
 
-    public noteQueueDepth(client: Client, depth: number): void {
-        if (depth < this.excessiveQueueDepth) {
-            return;
-        }
-        const now = performance.now();
-        const lastWarningAt = this.lastQueueDepthWarningAt.get(client) ?? 0;
-        if (now - lastWarningAt < 1000) {
-            return;
-        }
-        this.lastQueueDepthWarningAt.set(client, now);
-        console.warn(`[Router] Excessive packet queue depth=${depth} token=${client.token}`);
+    public noteQueueDepth(_client: Client, _depth: number): void {
+        // Queue depth is tracked for metrics only; do not warn or disconnect here.
     }
 
     public getMetrics(packetId: number): PacketHandlerMetrics | null {
@@ -68,13 +55,6 @@ export class PacketRouter {
                 metric.totalHandlerDurationMs += handlerDurationMs;
                 metric.maxHandlerDurationMs = Math.max(metric.maxHandlerDurationMs, handlerDurationMs);
                 this.metrics.set(packetId, metric);
-                if (queueWaitMs >= this.slowQueueWaitMs || handlerDurationMs >= this.slowHandlerMs) {
-                    console.warn(
-                        `[Router] Slow packet handler packet=0x${packetId.toString(16)} ` +
-                        `queueWaitMs=${queueWaitMs.toFixed(1)} handlerMs=${handlerDurationMs.toFixed(1)} ` +
-                        `depth=${context?.depthAtEnqueue ?? 0} token=${client.token}`
-                    );
-                }
             }
         }
     }
