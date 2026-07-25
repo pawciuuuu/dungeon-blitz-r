@@ -1,5 +1,5 @@
 {
-    "_comment": "Client patches that already fail --verify as of 2026-07-25. The gate only fails on regressions outside this list; entries that start passing must be removed. Triage and shrink this list -- some are deliberate reverts, others are genuinely dropped patches.",
+    "_comment": "Client patches that already fail --verify as of 2026-07-25. The gate only fails on regressions outside this list; entries that start passing must be removed. Triage and shrink this list -- some are deliberate reverts, others are genuinely dropped patches. 2026-07-25: transfer-pet-mount-sync recovered when the forge tutorial patch rewrote (and recompressed) DungeonBlitz.swf.",
     "recordedAt": "2026-07-25",
     "knownFailing": [
         "patch-dungeonblitz-banshee-wail-cap.ts",
@@ -17,7 +17,6 @@
         "patch-dungeonblitz-room-cue-dead-player-guard.ts",
         "patch-dungeonblitz-story-zone-locks.js",
         "patch-dungeonblitz-superanim-method806-fullscreen-bitmapdata.ts",
-        "patch-dungeonblitz-transfer-pet-mount-sync.js",
         "patch_gameswz_frozen_ward_cast_anim.ts",
         "patch_levelsnr_room4_advance_drop_on_jump.ts",
         "patch_levelsnr_room4_drop_complete_once.ts",
