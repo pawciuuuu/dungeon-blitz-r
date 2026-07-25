@@ -395,7 +395,8 @@ export class DungeonCompletionSystem {
         levelScope: string,
         roomId: number,
         now: number = Date.now(),
-        completionEligibleAtStart: boolean = false
+        completionEligibleAtStart: boolean = false,
+        bossSceneAtStart: boolean = false
     ): void {
         const state = DungeonCompletionSystem.getOrCreateState(levelScope, now);
         if (!state) {
@@ -413,7 +414,8 @@ export class DungeonCompletionSystem {
             endedAt: 0,
             startedSequence: state.cutsceneStartedSequence,
             endedSequence: 0,
-            completionEligibleAtStart
+            completionEligibleAtStart,
+            bossSceneAtStart
         });
         state.updatedAt = now;
         DungeonCompletionSystem.evaluate(levelScope, now);
@@ -436,7 +438,10 @@ export class DungeonCompletionSystem {
             endedAt: 0,
             startedSequence: state.eventSequence,
             endedSequence: 0,
-            completionEligibleAtStart: false
+            completionEligibleAtStart: false,
+            // A close with no start on record says nothing about what the skit
+            // was playing over, so it does not get the boss-scene exemption.
+            bossSceneAtStart: false
         };
         roomState.endedAt = now;
         roomState.endedSequence = state.eventSequence;
@@ -450,6 +455,37 @@ export class DungeonCompletionSystem {
         }
         state.updatedAt = now;
         return DungeonCompletionSystem.evaluate(levelScope, now).ready;
+    }
+
+    // True once a cutscene in this run has been seen to close: either the client
+    // reported the skit ending, or a close was recognised late as the fallback
+    // that released the gate. This is the "the dialogue is over" fact the rank
+    // plate is meant to follow.
+    //
+    // Deliberately false for a run that never played a cutscene at all — those
+    // still have closing chatter with nothing gating it, which is what the
+    // skit-settle window is for. So this only ever removes a wait the cutscene
+    // itself has already made unnecessary.
+    static hasObservedCutsceneEnd(levelScope: string): boolean {
+        const state = DungeonCompletionSystem.getState(levelScope);
+        if (!state) {
+            return false;
+        }
+        if (state.cutsceneFallbackReason === 'close-observed') {
+            return true;
+        }
+
+        for (const cutscene of state.cutscenesByRoom.values()) {
+            if (
+                cutscene.startedAt > 0 &&
+                cutscene.endedAt > 0 &&
+                cutscene.endedSequence >= cutscene.startedSequence
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     static canQueueCompletion(levelScope: string, now: number = Date.now()): boolean {
@@ -553,6 +589,7 @@ export class DungeonCompletionSystem {
         const objectivesMet = DungeonCompletionSystem.areObjectivesMet(state, condition);
         if (!objectivesMet) {
             state.phase = 'running';
+            DungeonCompletionSystem.logPendingObjectives(state, condition, now);
             return { ready: false, phase: state.phase, reason: 'objectives_pending', objectivesMet: false, gateMet: false };
         }
         if (state.objectivesMetAt <= 0) {
@@ -592,6 +629,20 @@ export class DungeonCompletionSystem {
             );
         let gateMet = !activeSharedCutscene || activeCutsceneOverridden;
         if (condition.cutscene?.requiredAfterObjectives) {
+            // The ending skit usually closes after the last objective is
+            // registered, and its sequence alone settles this. The reorder
+            // tolerance is for when it does not, because the boss reports its own
+            // death through the client and that packet can land after the close
+            // that played over it — the skit that ended the run is then sequenced
+            // before the run was complete.
+            //
+            // `completionEligibleAtStart` recognised that only when the run was
+            // already completable as the skit opened. A boss scene never is: the
+            // boss is officially alive when its own scene opens, which is why a
+            // Dread run's real ending skit went uncounted and the dungeon sat out
+            // the cutscene-start grace with its dialogue already over.
+            // `bossSceneAtStart` covers that without widening the rule to intro
+            // cinematics, which resolve no boss and stay excluded.
             const sharedCutsceneEnded = relevantCutscenes.some((cutscene) =>
                 cutscene.startedAt > 0 &&
                 cutscene.endedSequence >= cutscene.startedSequence &&
@@ -599,7 +650,7 @@ export class DungeonCompletionSystem {
                 (
                     cutscene.endedSequence > state.objectivesMetSequence ||
                     (
-                        cutscene.completionEligibleAtStart &&
+                        (cutscene.completionEligibleAtStart || cutscene.bossSceneAtStart) &&
                         cutscene.endedAt + CUTSCENE_OBJECTIVE_REORDER_TOLERANCE_MS >= state.objectivesMetAt
                     )
                 )
@@ -628,6 +679,72 @@ export class DungeonCompletionSystem {
         }
         state.updatedAt = now;
         return { ready: true, phase: state.phase, reason: 'ready', objectivesMet: true, gateMet: true };
+    }
+
+    // "I killed the boss and nothing happened" is otherwise invisible: the run
+    // just sits on objectives_pending with no record of what it is still waiting
+    // for. Name the missing bosses and objectives, and dump every boss-named
+    // entity the scope holds with its life state, so a duplicate boss (two
+    // entities, only one of them dying) is obvious from one line. Throttled so a
+    // stuck run does not flood the log. Silence with DUNGEON_DIAG=0.
+    private static lastPendingObjectiveLogAt = new Map<string, number>();
+
+    private static logPendingObjectives(
+        state: DungeonCompletionRunState,
+        condition: DungeonCompletionCondition,
+        now: number
+    ): void {
+        if (String(process.env.DUNGEON_DIAG ?? '1').trim() === '0' || condition.mode !== 'bosses') {
+            return;
+        }
+        const lastLoggedAt = DungeonCompletionSystem.lastPendingObjectiveLogAt.get(state.levelScope) ?? 0;
+        if (now - lastLoggedAt < 5_000) {
+            return;
+        }
+        DungeonCompletionSystem.lastPendingObjectiveLogAt.set(state.levelScope, now);
+
+        const missingBossGroups = (condition.bossGroups ?? [])
+            .filter((group) => !group.some((bossName) => state.defeatedBosses.has(bossName)));
+        const missingObjectives = (condition.entityObjectives ?? [])
+            .filter((objective) => !state.destroyedObjectives.has(objective.role))
+            .map((objective) => objective.role);
+        if (!missingBossGroups.length && !missingObjectives.length) {
+            return;
+        }
+
+        const bossNamedEntities = [...(GlobalState.levelEntities.get(state.levelScope)?.values() ?? [])]
+            .filter((entity) => Boolean(
+                DungeonCompletionConditions.getCanonicalBossName(state.levelName, entity, state.levelScope)
+            ) || DungeonCompletionConditions.getObjectiveRole(state.levelName, entity))
+            .map((entity: any) => ({
+                id: getEntityId(entity),
+                name: String(entity?.name ?? entity?.EntName ?? ''),
+                canonical: DungeonCompletionConditions.getCanonicalBossName(state.levelName, entity, state.levelScope),
+                role: DungeonCompletionConditions.getObjectiveRole(state.levelName, entity),
+                hp: entity?.hp,
+                maxHp: entity?.maxHp,
+                dead: Boolean(entity?.dead),
+                destroyed: Boolean(entity?.destroyed),
+                entState: entity?.entState,
+                roomId: entity?.roomId,
+                clientSpawned: Boolean(entity?.clientSpawned),
+                ownerToken: entity?.ownerToken,
+                defeated: isDefeated(entity)
+            }));
+
+        try {
+            console.log(`[DUNGEON-DIAG] objectivesPending ${JSON.stringify({
+                level: state.levelName,
+                scope: state.levelScope,
+                missingBossGroups,
+                missingObjectives,
+                defeatedBosses: [...state.defeatedBosses],
+                destroyedObjectives: [...state.destroyedObjectives],
+                bossNamedEntities
+            })}`);
+        } catch {
+            console.log('[DUNGEON-DIAG] objectivesPending <unserializable>');
+        }
     }
 
     static tryReserveFinalization(levelScope: string, participantKey: string): boolean {

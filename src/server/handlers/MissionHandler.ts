@@ -7,6 +7,12 @@ import {
 } from '../core/DungeonScoreProfiles';
 import { DungeonCompletionConditions } from '../core/DungeonCompletionConditions';
 import { DungeonCompletionSystem } from '../core/DungeonCompletionSystem';
+import {
+    getBossIdentityKeys,
+    logBossCopyCensus,
+    looksLikeDungeonBoss
+} from '../core/BossCopyCensus';
+import { isRoomBossEntity, noteBossSceneOpened } from '../core/RoomBossState';
 import { GameData } from '../core/GameData';
 import { GlobalState } from '../core/GlobalState';
 import { isWolfsEndDungeonLevel } from '../core/WolfsEndDungeonStatsPolicy';
@@ -89,6 +95,16 @@ export class MissionHandler {
     private static readonly ATTACK_OF_OPPORTUNITY_HARD_SATELLITE_IDS = new Set([255, 256, 257]);
     static readonly DUNGEON_COMPLETION_SKIT_SETTLE_MS = 1500;
     static readonly DUNGEON_COMPLETION_MAX_DEFER_MS = 15000;
+    // The skit-settle window answers "has the chatter stopped?" and makes a poor
+    // re-check interval. Every deferring branch used to re-arm at a full settle
+    // window, so a gate that cleared on its own — with no event of its own to
+    // re-arm the timer — was not noticed for up to 1.5s. That is dead time the
+    // player watches after the dialogue is already over.
+    static readonly DUNGEON_COMPLETION_READY_POLL_MS = 100;
+    // ...but only while the plate is actually due. Once this window since the
+    // cinematic close has passed the run is stuck on something real, and the
+    // slower re-arm keeps both the timer and the deferral log readable.
+    static readonly DUNGEON_COMPLETION_PLATE_HOT_WINDOW_MS = 3000;
     // How long to wait for a post-objective cinematic that has not started yet.
     // Cutscenes are client-driven: the client sends its 0xA5 start as soon as it
     // plays one, so a start that has not arrived within this window means the
@@ -1264,6 +1280,11 @@ export class MissionHandler {
             if (clearedDungeon) {
                 DungeonCompletionSystem.noteClientCompletionSignal(levelScope, participantKey, 100);
             }
+            // The client sends this packet once its own view of the level is
+            // finished, scene included, even when it reports less than 100%. That
+            // makes it the authoritative "nothing more is coming" signal, so the
+            // plate no longer has to wait out the missing-cutscene grace guessing
+            // whether a cinematic might still start.
             const evaluation = DungeonCompletionSystem.evaluate(levelScope);
             if (!evaluation.ready) {
                 if (DungeonCompletionSystem.canQueueCompletion(levelScope)) {
@@ -1506,6 +1527,11 @@ export class MissionHandler {
                 trigger: 'homeDoorTargetAfterCutscene'
             });
         } else {
+            // The last sample before the level tears down. Any copy still listed
+            // here is one the scene-entry sweep failed to catch.
+            logBossCopyCensus('rankPlate', levelScope, currentLevel, {
+                viewer: String(client.character?.name ?? '')
+            });
             MissionHandler.sendDungeonComplete(client, {
                 stars: completionResult.stars,
                 resultBar: completionResult.resultBar,
@@ -1632,7 +1658,36 @@ export class MissionHandler {
             });
         }
 
-        const evaluation = DungeonCompletionSystem.evaluate(levelScope);
+        logBossCopyCensus('bossDeath:before', levelScope, currentLevel, {
+            destroyedEntityId: Math.max(0, Math.round(Number(destroyedEntity?.id ?? 0)))
+        });
+        MissionHandler.removeStaleBossDuplicates(levelScope, currentLevel, destroyedEntity);
+        logBossCopyCensus('bossDeath:after', levelScope, currentLevel, {
+            destroyedEntityId: Math.max(0, Math.round(Number(destroyedEntity?.id ?? 0)))
+        });
+
+        // The ending cutscene usually plays and closes *before* the boss's own
+        // death packet lands, so at close time the objectives were not met and the
+        // close could not release the gate. If this client has already observed
+        // that close, release it now that the boss is down — otherwise the run
+        // would fall through to the schedule below and sit out the missing-start
+        // grace with its dialogue already over. Keyed on the observed 0xA6 close,
+        // the same authoritative signal noteDungeonCutsceneEnd uses, so a level
+        // whose cutscene the server genuinely must still see is unaffected.
+        const closeObservedForScope =
+            String(client.lastDungeonCutsceneEndScope ?? '').trim() === levelScope &&
+            Math.max(0, Number(client.lastDungeonCutsceneEndAt ?? 0)) > 0;
+        let evaluation = DungeonCompletionSystem.evaluate(levelScope);
+        if (
+            closeObservedForScope &&
+            !evaluation.ready &&
+            evaluation.objectivesMet &&
+            evaluation.reason === 'cutscene_gate_pending' &&
+            !MissionHandler.isDungeonCinematicOpen(client, levelScope)
+        ) {
+            DungeonCompletionSystem.releaseCutsceneGateOnClose(levelScope);
+            evaluation = DungeonCompletionSystem.evaluate(levelScope);
+        }
 
         MissionHandler.logDungeonDiag('bossDeathDetected', {
             level: currentLevel,
@@ -1689,6 +1744,236 @@ export class MissionHandler {
         MissionHandler.scheduleDungeonCompletionForScope(levelScope, client);
     }
 
+    // Every dungeon authors exactly one instance of each required boss — verified
+    // against the level SWFs — so once that boss is confirmed dead, any other
+    // entity in the scope still carrying the same canonical boss name is a stale
+    // runtime copy. Dread Goblin Hideout shows it: the real Tag Ugo dies, the
+    // rank plate opens, and a second Tag Ugo stays on screen holding every debuff
+    // it was ever hit with, because nothing ever drives or removes it. Drop it
+    // from the shared state and tell every viewer to destroy its visual.
+    private static removeStaleBossDuplicates(
+        levelScope: string,
+        levelName: string,
+        destroyedEntity: any
+    ): void {
+        const canonicalBoss = DungeonCompletionConditions.getCanonicalBossName(
+            levelName,
+            destroyedEntity,
+            levelScope
+        );
+        MissionHandler.removeDuplicateBossEntities(
+            levelScope,
+            levelName,
+            canonicalBoss,
+            Math.max(0, Math.round(Number(destroyedEntity?.id ?? 0)))
+        );
+    }
+
+    // The client's boss-room packet names the entity its own BossFight drives, so
+    // that id is the authoritative "real" boss. Anything else in the scope under
+    // the same canonical name is the runtime copy — the Tag Ugo that stands still
+    // holding every debuff. Sweeping on that packet clears the boss scene as the
+    // player walks into it instead of leaving the copy up until the boss dies.
+    static removeDuplicateBossEntities(
+        levelScope: string,
+        levelName: string,
+        canonicalBoss: string,
+        keepEntityId: number
+    ): void {
+        if (!levelScope || !canonicalBoss || keepEntityId <= 0) {
+            return;
+        }
+
+        const levelMap = GlobalState.levelEntities.get(levelScope);
+        // Never delete on a marker that does not resolve to this boss: if the kept
+        // id is not the canonical boss itself, the sweep has no reliable anchor.
+        if (
+            DungeonCompletionConditions.getCanonicalBossName(
+                levelName,
+                levelMap?.get(keepEntityId),
+                levelScope
+            ) !== canonicalBoss
+        ) {
+            return;
+        }
+
+        for (const [entityId, entity] of [...(levelMap?.entries() ?? [])]) {
+            if (
+                entityId === keepEntityId ||
+                DungeonCompletionConditions.getCanonicalBossName(levelName, entity, levelScope) !== canonicalBoss
+            ) {
+                continue;
+            }
+
+            levelMap?.delete(entityId);
+            const { EntityHandler } = require('./EntityHandler') as typeof import('./EntityHandler');
+            for (const viewer of GlobalState.getSessionsInLevelScope(levelScope)) {
+                if (getClientLevelScope(viewer) !== levelScope) {
+                    continue;
+                }
+                EntityHandler.destroyClientLocalEntity(viewer, entityId, 'stale_boss_duplicate', entity);
+            }
+
+            MissionHandler.logDungeonDiag('staleBossDuplicateRemoved', {
+                level: levelName,
+                canonicalBoss,
+                keptEntityId: keepEntityId,
+                removedEntityId: entityId,
+                removedName: String(entity?.name ?? ''),
+                removedHp: entity?.hp,
+                removedWasDead: Boolean(entity?.dead)
+            });
+        }
+    }
+
+    // removeDuplicateBossEntities can only act when the id BossFight announced
+    // resolves to a canonical boss in the shared map. Dread Goblin Hideout never
+    // satisfies that — its boss is client-driven, so the announced id belongs to
+    // the reporting client's own space — and that is why the copy stood through
+    // the entire scene and only vanished when the rank plate tore the level down.
+    //
+    // This sweep drops that requirement. It works from the boss *names* the level
+    // is configured with, keeps one visual per viewer, and reports what it chose,
+    // so a wrong pick is readable in the log rather than silent.
+    static sweepBossSceneDuplicates(
+        levelScope: string,
+        levelName: string,
+        announcedBossId: number,
+        phase: string
+    ): void {
+        const scopeKey = String(levelScope ?? '').trim();
+        const resolvedLevel = String(levelName ?? '').trim() || getScopeLevelName(scopeKey);
+        const bossKeys = getBossIdentityKeys(resolvedLevel);
+        if (!scopeKey || bossKeys.size === 0) {
+            return;
+        }
+
+        const normalizedAnnouncedId = Math.max(0, Math.round(Number(announcedBossId ?? 0)));
+        const levelMap = GlobalState.levelEntities.get(scopeKey);
+        const sharedBossIds: number[] = [];
+        for (const [entityId, entity] of levelMap?.entries() ?? []) {
+            const normalizedId = Math.max(0, Math.round(Number(entityId) || 0));
+            if (normalizedId > 0 && looksLikeDungeonBoss(entity, bossKeys)) {
+                sharedBossIds.push(normalizedId);
+            }
+        }
+
+        // Anchor preference: the announced entity, else the marked room boss, else
+        // the only shared boss there is. Without one of those, the shared map has
+        // no trustworthy "real" boss and only the per-viewer pass may act.
+        const markedSharedIds = sharedBossIds.filter(
+            (entityId) => isRoomBossEntity(scopeKey, levelMap?.get(entityId))
+        );
+        const anchorId = sharedBossIds.includes(normalizedAnnouncedId)
+            ? normalizedAnnouncedId
+            : markedSharedIds.length === 1
+                ? markedSharedIds[0]
+                : sharedBossIds.length === 1
+                    ? sharedBossIds[0]
+                    : 0;
+
+        const { EntityHandler } = require('./EntityHandler') as typeof import('./EntityHandler');
+        const removedShared: number[] = [];
+        if (anchorId > 0) {
+            for (const entityId of sharedBossIds) {
+                if (entityId === anchorId) {
+                    continue;
+                }
+                levelMap?.delete(entityId);
+                removedShared.push(entityId);
+                for (const viewer of GlobalState.getSessionsInLevelScope(scopeKey)) {
+                    if (getClientLevelScope(viewer) !== scopeKey) {
+                        continue;
+                    }
+                    EntityHandler.destroyClientLocalEntity(viewer, entityId, 'boss_scene_shared_duplicate', null);
+                }
+            }
+        }
+
+        const viewerResults: Array<Record<string, unknown>> = [];
+        for (const viewer of GlobalState.getSessionsInLevelScope(scopeKey)) {
+            if (getClientLevelScope(viewer) !== scopeKey) {
+                continue;
+            }
+
+            const localBossIds: number[] = [];
+            for (const [localId, localEntity] of viewer.entities?.entries() ?? []) {
+                const normalizedLocalId = Math.max(0, Math.round(Number(localId) || 0));
+                if (normalizedLocalId > 0 && looksLikeDungeonBoss(localEntity, bossKeys)) {
+                    localBossIds.push(normalizedLocalId);
+                }
+            }
+
+            // A viewer with one visual is already correct, and a viewer with none
+            // must never be swept: a party member's local copy is the only boss
+            // they can see, so leaving them at zero would break the fight for them.
+            if (localBossIds.length <= 1) {
+                viewerResults.push({
+                    viewer: String(viewer.character?.name ?? ''),
+                    localBossIds,
+                    keptEntityId: localBossIds[0] ?? 0,
+                    removedEntityIds: []
+                });
+                continue;
+            }
+
+            const aliasedToAnchor = anchorId > 0
+                ? localBossIds.filter((localId) => Math.max(0, Math.round(
+                    Number(viewer.entityIdAliases?.get(localId) ?? 0)
+                )) === anchorId)
+                : [];
+            const markedLocalIds = localBossIds.filter(
+                (localId) => isRoomBossEntity(scopeKey, viewer.entities?.get(localId))
+            );
+            const keeperId = localBossIds.includes(normalizedAnnouncedId)
+                ? normalizedAnnouncedId
+                : localBossIds.includes(anchorId)
+                    ? anchorId
+                    : aliasedToAnchor.length === 1
+                        ? aliasedToAnchor[0]
+                        : markedLocalIds.length === 1
+                            ? markedLocalIds[0]
+                            : Math.min(...localBossIds);
+
+            const removedEntityIds: number[] = [];
+            for (const localId of localBossIds) {
+                if (localId === keeperId) {
+                    continue;
+                }
+                // The destroy clears the alias, so re-point the id afterwards:
+                // damage already sent under it must still reach the real boss.
+                EntityHandler.destroyClientLocalEntity(
+                    viewer,
+                    localId,
+                    'boss_scene_local_duplicate',
+                    viewer.entities?.get(localId) ?? null
+                );
+                EntityHandler.rememberEntityAlias(viewer, localId, keeperId);
+                removedEntityIds.push(localId);
+            }
+
+            viewerResults.push({
+                viewer: String(viewer.character?.name ?? ''),
+                localBossIds,
+                keptEntityId: keeperId,
+                removedEntityIds
+            });
+        }
+
+        MissionHandler.logDungeonDiag('bossSceneSweep', {
+            phase,
+            level: resolvedLevel,
+            scope: scopeKey,
+            announcedBossId: normalizedAnnouncedId,
+            announcedIdResolvedInScope: sharedBossIds.includes(normalizedAnnouncedId),
+            anchorId,
+            sharedBossIds,
+            markedSharedIds,
+            removedShared,
+            viewers: viewerResults
+        });
+    }
+
     static async handleForcedDungeonObjectiveCompletion(client: Client, destroyedEntity: any): Promise<void> {
         await MissionHandler.handleForcedDungeonBossCompletion(client, destroyedEntity);
     }
@@ -1701,6 +1986,22 @@ export class MissionHandler {
         if (!levelScope || !DungeonCompletionSystem.canQueueCompletion(levelScope)) {
             return;
         }
+
+        // The rank plate follows the cutscene. Once the run is ready and a
+        // cutscene in it has been seen to close, the dialogue is demonstrably
+        // over and there is nothing left for a settle window to wait out.
+        //
+        // Without this the plate only tracked the close when the close was the
+        // last thing to happen. The common order in a Dread run is the other way
+        // round: the boss's own destroy packet lands *after* the skit that plays
+        // over it, so at close time the objectives are not met yet and the close
+        // releases nothing. The run then became ready on the boss-death path
+        // below, which armed the full 1.5s settle — the dialogue was long over
+        // and the player sat watching a finished dungeon.
+        const plateFollowsCutsceneEnd = !options.immediate &&
+            DungeonCompletionSystem.evaluate(levelScope).ready &&
+            DungeonCompletionSystem.hasObservedCutsceneEnd(levelScope);
+        const immediate = Boolean(options.immediate) || plateFollowsCutsceneEnd;
 
         const payload = MissionHandler.buildSyntheticLevelCompletePacket(100);
         const completionState = DungeonCompletionSystem.getState(levelScope);
@@ -1715,7 +2016,7 @@ export class MissionHandler {
             ) {
                 continue;
             }
-            MissionHandler.scheduleDungeonCompletion(session, payload, options.immediate
+            MissionHandler.scheduleDungeonCompletion(session, payload, immediate
                 ? { initialDelayMs: 0, settleDelayMs: 0, replaceExistingSchedule: true }
                 : {
                     initialDelayMs: MissionHandler.DUNGEON_COMPLETION_SKIT_SETTLE_MS,
@@ -1853,7 +2154,16 @@ export class MissionHandler {
             client.pendingDungeonCompletionNotBeforeAt = existingNotBeforeAt > 0
                 ? Math.min(existingNotBeforeAt, nextNotBeforeAt)
                 : nextNotBeforeAt;
-            client.pendingDungeonCompletionSettleMs = Math.max(existingSettleMs, settleDelayMs);
+            // Merging two completion requests may only bring the plate forward,
+            // never push it back — which is why this takes the shorter settle the
+            // same way the deadline above takes the earlier one. Taking the longer
+            // one let the client's own SetLevelComplete undo the cutscene close:
+            // the close had armed an immediate schedule (settle 0), then the
+            // client's packet arrived reporting less than 100% — so it did not
+            // count as cleared, fell through to the lazy re-arm here, and raised
+            // the settle back to the full 1.5s skit window. Boss down, dialogue
+            // over, and the rank plate still a beat and a half away.
+            client.pendingDungeonCompletionSettleMs = Math.min(existingSettleMs, settleDelayMs);
             client.pendingDungeonCompletionPayload = Buffer.from(payload);
             MissionHandler.dispatchOrArmPendingDungeonCompletion(client);
             return;
@@ -1871,6 +2181,21 @@ export class MissionHandler {
     static noteDungeonSkitActivity(client: Client): void {
         const pendingScope = String(client.pendingDungeonCompletionScope ?? '').trim();
         if (!pendingScope || getClientLevelScope(client) !== pendingScope) {
+            return;
+        }
+
+        // Trailing chatter after the cutscene has closed must not push the plate
+        // back out. Once the run is ready and a cutscene in it has been seen to
+        // close, the dialogue is over: flush now instead of re-arming the settle
+        // window this packet would otherwise extend. Without this, a stream of
+        // post-cutscene skit/social packets kept resetting lastSkitAt and held the
+        // rank screen a full skit window behind the dialogue every time.
+        if (
+            DungeonCompletionSystem.hasObservedCutsceneEnd(pendingScope) &&
+            !MissionHandler.isDungeonCinematicOpen(client, pendingScope) &&
+            DungeonCompletionSystem.evaluate(pendingScope).ready
+        ) {
+            void MissionHandler.flushPendingDungeonCompletion(client);
             return;
         }
 
@@ -1940,7 +2265,8 @@ export class MissionHandler {
             scope,
             roomId,
             client.lastDungeonCutsceneStartAt,
-            completionEligibleAtStart
+            completionEligibleAtStart,
+            bossId > 0
         );
         TutorialDungeonMechanics.noteCutscenePhase(scope, roomId, 'active', client.token);
         MissionHandler.activateBossRunStatsForCutsceneRoom(client, scope, client.activeDungeonCutsceneRoomId);
@@ -1954,6 +2280,21 @@ export class MissionHandler {
             // one, so the run waits for a second cutscene that never comes.
             completionEligibleAtStart
         });
+        logBossCopyCensus('cutsceneStart', scope, getScopeLevelName(scope), {
+            roomId: Math.max(0, Math.round(Number(roomId ?? 0))),
+            bossId
+        });
+
+        // 0xAC is the preferred signal, but it does not always reach us — a
+        // suppressed relay used to skip the bookkeeping entirely, and a client can
+        // open the skit without announcing the encounter at all. A cutscene that
+        // resolves to a boss is the same moment from the player's side: they have
+        // walked into the boss scene. Record it and sweep here too, so the copy is
+        // gone as the cinematic opens rather than when the rank plate arrives.
+        if (bossId > 0) {
+            noteBossSceneOpened(scope, roomId, bossId, String(bossEntity?.name ?? ''));
+            MissionHandler.sweepBossSceneDuplicates(scope, getScopeLevelName(scope), bossId, 'cutsceneStart');
+        }
     }
 
     static noteDungeonCutsceneEnd(client: Client, roomId: number): void {
@@ -2010,6 +2351,10 @@ export class MissionHandler {
             objectivesMet: cutsceneEndEvaluation.objectivesMet,
             gateMet: cutsceneEndEvaluation.gateMet
         });
+        logBossCopyCensus('cutsceneEnd', scope, getScopeLevelName(scope), {
+            roomId: endedRoomId,
+            completionReady
+        });
         if (!client.lastDungeonCutsceneStartScope) {
             client.lastDungeonCutsceneStartScope = scope;
             client.lastDungeonCutsceneStartAt = client.lastDungeonCutsceneEndAt;
@@ -2026,10 +2371,18 @@ export class MissionHandler {
         // a run whose ending cutscene was never registered as a fresh start (or
         // whose start was booked against another room) has no other way out, and
         // the player is left standing in a finished dungeon.
-        const releasedByClose = completionReady || (
-            !MissionHandler.isDungeonCinematicOpen(client, scope) &&
-            DungeonCompletionSystem.releaseCutsceneGateOnClose(scope, client.lastDungeonCutsceneEndAt)
-        );
+        // A run that is *already* ready when the skit closes has no gate left to
+        // release, so releaseCutsceneGateOnClose returns false and the close used
+        // to fall through to the deferred flush — the plate then waited out the
+        // 1.5s arm plus its quiet-settle window. That is the delay the player
+        // sees: the boss is down, the dialogue is over, and the screen just sits
+        // there. An observed close over a ready run is the plate's cue.
+        const releasedByClose = completionReady ||
+            cutsceneEndEvaluation.ready ||
+            (
+                !MissionHandler.isDungeonCinematicOpen(client, scope) &&
+                DungeonCompletionSystem.releaseCutsceneGateOnClose(scope, client.lastDungeonCutsceneEndAt)
+            );
 
         if (releasedByClose) {
             // The cutscene close is the authoritative "dialogue finished and the
@@ -2043,16 +2396,52 @@ export class MissionHandler {
         }
     }
 
-    // Releases only the completion gate, never the cutscene bookkeeping: the skit
-    // on screen keeps its own active record. Plating is still guarded downstream —
-    // flushPendingDungeonCompletion re-checks isDungeonCinematicOpen and defers if
-    // a cinematic is genuinely running for this client.
+    // Records that this client reported a cutscene close in this scope, without
+    // touching the bookkeeping for the skit it has on screen — a close booked
+    // against another room must still not end that record, and a stray close must
+    // not let the plate land over a skit that really is playing.
+    //
+    // The timestamp is what matters: flushPendingDungeonCompletion was holding the
+    // plate on its `cinematic_open` branch for 1500ms per attempt because a
+    // mismatched close left both the client marker and the shared room record
+    // saying "still playing", even though the same close had just been accepted as
+    // the authoritative end of the dialogue. isDungeonCinematicOpen now compares
+    // this close against the active skit's start instead.
+    private static noteClientCinematicClosed(client: Client, scope: string): void {
+        client.lastDungeonCutsceneEndScope = scope;
+        client.lastDungeonCutsceneEndAt = Date.now();
+    }
+
+    // Releases only the completion gate, never the shared cutscene bookkeeping:
+    // the room record keeps its own state for other participants.
     private static releaseEndingGateOnMismatchedRoomClose(
         client: Client,
         scope: string,
         endedRoomId: number
     ): void {
         const evaluation = DungeonCompletionSystem.evaluate(scope);
+
+        // A run that is *already* ready has no gate left to release, so the check
+        // below skipped it entirely and the close did nothing — the plate then sat
+        // out whatever settle window the boss-death schedule had armed, which is
+        // the few seconds the player waits after the dialogue ends. The close is
+        // still the player's "cinematic finished" signal whether or not it moved a
+        // gate, and Dread clients book these closes against odd room ids often
+        // enough that this is the common path, not the rare one.
+        if (evaluation.ready) {
+            MissionHandler.logDungeonDiag('cutsceneEndMismatchedRoom', {
+                level: getScopeLevelName(scope),
+                endedRoomId,
+                activeCutsceneRoomId: client.activeDungeonCutsceneRoomId,
+                released: false,
+                alreadyReady: true
+            });
+            MissionHandler.noteClientCinematicClosed(client, scope);
+            TutorialDungeonMechanics.noteCompletionPhase(scope, 'ready', client.token);
+            MissionHandler.scheduleDungeonCompletionForScope(scope, client, { immediate: true });
+            return;
+        }
+
         if (!evaluation.objectivesMet || evaluation.reason !== 'cutscene_gate_pending') {
             return;
         }
@@ -2069,6 +2458,7 @@ export class MissionHandler {
             return;
         }
 
+        MissionHandler.noteClientCinematicClosed(client, scope);
         TutorialDungeonMechanics.noteCompletionPhase(scope, 'ready', client.token);
         MissionHandler.scheduleDungeonCompletionForScope(scope, client, { immediate: true });
     }
@@ -2232,6 +2622,19 @@ export class MissionHandler {
             return false;
         }
 
+        // This client has reported a close in this scope since the skit on screen
+        // started, so its own cinematic is over even though the close was booked
+        // against a different room and the record above still names the old one.
+        // Without this the plate waits out a re-arm per attempt with the dialogue
+        // already finished — several seconds of standing in a completed dungeon.
+        const closedAt = String(client.lastDungeonCutsceneEndScope ?? '').trim() === levelScope
+            ? Math.max(0, Number(client.lastDungeonCutsceneEndAt ?? 0))
+            : 0;
+        const startedAt = Math.max(0, Number(client.lastDungeonCutsceneStartAt ?? 0));
+        if (closedAt > 0 && closedAt >= startedAt) {
+            return false;
+        }
+
         const roomId = Math.max(0, Math.round(Number(client.activeDungeonCutsceneRoomId ?? 0)));
         const roomState = DungeonCompletionSystem.getState(levelScope)?.cutscenesByRoom.get(roomId);
         if (!roomState) {
@@ -2283,29 +2686,75 @@ export class MissionHandler {
             notBeforeAt + settleDelayMs
         );
 
-        if (now < notBeforeAt) {
-            MissionHandler.armPendingDungeonCompletionTimer(client, notBeforeAt - now);
+        // How long to wait before looking again. While the plate is due — the
+        // close has just been observed, or this schedule was armed immediate —
+        // re-check on the short poll so a gate that clears without an event of
+        // its own is picked up in a frame or two instead of a skit window.
+        const sinceCinematicEndMs = cinematicEndedAt > 0 ? now - cinematicEndedAt : -1;
+        const plateIsDue =
+            (sinceCinematicEndMs >= 0 && sinceCinematicEndMs <= MissionHandler.DUNGEON_COMPLETION_PLATE_HOT_WINDOW_MS) ||
+            (settleDelayMs === 0 && now - requestedAt <= MissionHandler.DUNGEON_COMPLETION_PLATE_HOT_WINDOW_MS);
+        const rearmDelayMs = plateIsDue
+            ? MissionHandler.DUNGEON_COMPLETION_READY_POLL_MS
+            : Math.max(settleDelayMs, MissionHandler.DUNGEON_COMPLETION_SKIT_SETTLE_MS);
+
+        // Every path below that arms a timer instead of plating is a visible
+        // pause for the player between the dialogue ending and the rank screen,
+        // so name the branch and its length rather than leaving "a few seconds"
+        // to be guessed at.
+        const deferPlate = (branch: string, delayMs: number, extra: Record<string, unknown> = {}): void => {
+            MissionHandler.logDungeonDiag('completionPlateDeferred', {
+                level: getScopeLevelName(pendingScope),
+                branch,
+                delayMs: Math.max(0, Math.round(delayMs)),
+                settleDelayMs,
+                effectiveSettleMs,
+                quietForMs,
+                cinematicEndedAt: cinematicEndedAt > 0 ? now - cinematicEndedAt : -1,
+                ...extra
+            });
+            MissionHandler.armPendingDungeonCompletionTimer(client, delayMs);
+        };
+
+        // Once a cutscene in this run has actually been seen to close and the run
+        // is ready, the rank plate must follow it with no further wait: the
+        // dialogue is demonstrably over, and the open-cinematic guard below still
+        // stops a plate landing under a skit that is genuinely still on screen.
+        // This is the single fact that skips both timed holds — the boss-death
+        // schedule's not-before delay and the trailing-chatter settle window —
+        // which is what otherwise sat the player in a finished dungeon after the
+        // cutscene ended. A dungeon that never played a cutscene has no observed
+        // close, so it keeps both waits untouched.
+        const plateFollowsClosedCutscene =
+            DungeonCompletionSystem.hasObservedCutsceneEnd(pendingScope) &&
+            !MissionHandler.isDungeonCinematicOpen(client, pendingScope) &&
+            DungeonCompletionSystem.evaluate(pendingScope).ready;
+
+        if (!plateFollowsClosedCutscene && now < notBeforeAt) {
+            deferPlate('not_before', notBeforeAt - now);
             return;
         }
 
         // Never show the completion plate underneath a running cinematic. Wait
         // for the client's own room close (0xA6) to be observed first.
         if (now < cinematicWaitDeadline && MissionHandler.isDungeonCinematicOpen(client, pendingScope)) {
-            MissionHandler.armPendingDungeonCompletionTimer(
-                client,
-                Math.max(settleDelayMs, MissionHandler.DUNGEON_COMPLETION_SKIT_SETTLE_MS)
+            deferPlate(
+                'cinematic_open',
+                rearmDelayMs,
+                { activeCutsceneRoomId: client.activeDungeonCutsceneRoomId }
             );
             return;
         }
 
+        // The quiet-settle window is the plate waiting for trailing skit chatter
+        // to stop in a dungeon that has no cutscene to key off. A ready run whose
+        // cutscene has already closed has nothing left to settle for.
         if (
             quietForMs < effectiveSettleMs &&
-            now < maxQuietWaitDeadline
+            now < maxQuietWaitDeadline &&
+            !plateFollowsClosedCutscene
         ) {
-            MissionHandler.armPendingDungeonCompletionTimer(
-                client,
-                effectiveSettleMs - quietForMs
-            );
+            deferPlate('quiet_settle', effectiveSettleMs - quietForMs);
             return;
         }
 
@@ -2331,7 +2780,21 @@ export class MissionHandler {
             // armed instead of dropping the run's completion on the floor.
             if (evaluation.objectivesMet && evaluation.reason === 'cutscene_gate_pending') {
                 const cinematicOpen = MissionHandler.isDungeonCinematicOpen(client, pendingScope);
-                if (!cinematicOpen && now >= cutsceneStartDeadline) {
+                // This client has already observed the cutscene close (0xA6) for
+                // this scope, so a cutscene demonstrably ran and ended. Release on
+                // that close directly — it overrides even a shared cutscene the
+                // start/close were booked against different rooms for, and it does
+                // not wait out the missing-start grace. The boss's own death packet
+                // routinely lands after the close it played over, so at close time
+                // the objectives were not met yet and the close could not release
+                // the gate then; picking it up here is what makes the plate follow
+                // the cutscene instead of the ~2.5s grace the player was watching.
+                if (!cinematicOpen && cinematicEndedAt > 0) {
+                    DungeonCompletionSystem.releaseCutsceneGateOnClose(pendingScope, now);
+                    evaluation = DungeonCompletionSystem.evaluate(pendingScope, now);
+                } else if (!cinematicOpen && now >= cutsceneStartDeadline) {
+                    // No close was ever observed: the ending cutscene never
+                    // announced itself, so fall back to the missing-start grace.
                     DungeonCompletionSystem.tryReleaseMissingCutsceneGate(
                         pendingScope,
                         MissionHandler.DUNGEON_COMPLETION_CUTSCENE_START_GRACE_MS,
@@ -2363,15 +2826,10 @@ export class MissionHandler {
                 const nextGateDeadline = MissionHandler.isDungeonCinematicOpen(client, pendingScope)
                     ? cinematicWaitDeadline
                     : cutsceneStartDeadline;
-                MissionHandler.armPendingDungeonCompletionTimer(
-                    client,
-                    Math.max(
-                        1,
-                        Math.min(
-                            Math.max(settleDelayMs, MissionHandler.DUNGEON_COMPLETION_SKIT_SETTLE_MS),
-                            Math.max(1, nextGateDeadline - now)
-                        )
-                    )
+                deferPlate(
+                    'gate_pending',
+                    Math.max(1, Math.min(rearmDelayMs, Math.max(1, nextGateDeadline - now))),
+                    { reason: evaluation.reason, msUntilGateDeadline: nextGateDeadline - now }
                 );
                 return;
             }
