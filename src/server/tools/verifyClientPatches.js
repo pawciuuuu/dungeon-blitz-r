@@ -12,7 +12,9 @@ const path = require('path');
 // the build so a dropped patch fails loudly here instead of shipping to players.
 const scriptsDir = path.resolve(__dirname, '..', 'scripts');
 const serverDir = path.resolve(__dirname, '..');
-const concurrency = Math.max(2, Math.min(8, os.cpus().length));
+// Deploys run this on the live box while players are connected, so leave a core for the game
+// server rather than saturating every one of them for the ~2 minutes the sweep takes.
+const concurrency = Math.max(1, Math.min(8, os.cpus().length - 1));
 
 function discoverVerifiableScripts() {
     return fs
