@@ -7,7 +7,7 @@
     "dev": "nodemon --watch main.ts --watch auth --watch core --watch database --watch handlers --watch integrations --watch network --watch utils --watch tools/runDevServer.js --ext ts,js --ignore dist --ignore test --ignore data/saves --exec \"node tools/runDevServer.js\"",
     "dev:built": "node tools/runBuiltDevServer.js",
     "dev:discord-bridge:built": "node dist/tools/discordLocalBridge.js discord-bridge.dev.config.json",
-    "multiplayer:pm2": "npm run build && (pm2 delete dungeon-mp || true) && pm2 start dist/main.js --name dungeon-mp && pm2 save",
+    "multiplayer:pm2": "node tools/deployMultiplayer.js",
     "patch:power-mana-costs": "ts-node scripts/patch_gameswz_power_mana_costs.ts",
     "prebuild": "npm run patch:power-mana-costs",
     "build": "tsc",
