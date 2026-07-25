@@ -1,4 +1,5 @@
 import express from 'express';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import type { Server as HttpServer } from 'http';
 import * as path from 'path';
@@ -57,11 +58,35 @@ export class StaticServer {
     private readonly selectedAssetVersion = 'cbp';
     private readonly flashVersion = this.selectedAssetVersion;
     private readonly gameVersion = this.selectedAssetVersion;
-    // Every SWF request is redirected to this token, so it — not index.html's own
-    // literal — is what decides whether a browser reuses its cached client. Bump
-    // it whenever DungeonBlitz.swf changes on disk, or players keep running the
-    // previous build and a client patch looks like it did nothing.
-    private readonly clientRevision = 'revert-destroy-brainless-1';
+    private clientRevisionCache: { key: string; value: string } | null = null;
+
+    // Every SWF request is redirected to this token, so it — not index.html's own literal — is
+    // what decides whether a browser reuses its cached client. It used to be a hand-maintained
+    // constant, which meant every client build collapsed onto one cache key and index.html's
+    // cache buster did nothing (see the warning in
+    // scripts/patch-dungeonblitz-hide-duplicate-boss-visual.ts). That was harmless while SWFs
+    // were served `no-store`, but once they became cacheable it left players on a stale client
+    // — #648 shipped a new DungeonBlitz.swf and nobody bumped this.
+    //
+    // Derive it from the SWF's content hash instead, using the same `swf-<sha1[0:12]>` scheme
+    // syncClientRev writes into index.html, so the two stay in lockstep with no manual step.
+    private get clientRevision(): string {
+        const swfPath = this.getSelectedSwfPath();
+        try {
+            const stats = fs.statSync(swfPath);
+            const cacheKey = `${stats.mtimeMs}:${stats.size}`;
+            if (this.clientRevisionCache?.key === cacheKey) {
+                return this.clientRevisionCache.value;
+            }
+
+            const digest = crypto.createHash('sha1').update(fs.readFileSync(swfPath)).digest('hex').slice(0, 12);
+            const value = `swf-${digest}`;
+            this.clientRevisionCache = { key: cacheKey, value };
+            return value;
+        } catch {
+            return 'swf-unknown';
+        }
+    }
 
     private static shouldLog(): boolean {
         return process.env.DEBUG_STATIC_SERVER === '1';
