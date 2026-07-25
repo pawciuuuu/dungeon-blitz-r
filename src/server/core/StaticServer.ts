@@ -425,11 +425,14 @@ try {
                 req.path.endsWith('.swz') ||
                 req.path.endsWith('.xml')
             ) {
-                res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-                res.setHeader('Pragma', 'no-cache');
-                res.setHeader('Expires', '0');
+                // Revalidate-always, but let the client keep the bytes. `no-store` used to be
+                // set here, which defeated the clientRevision cache-busting token above and
+                // forced Flash to re-download every level SWF (3-6 MB each) on every load and
+                // every region change. `no-cache` keeps content just as fresh -- the browser
+                // still asks on each request, and send()'s mtime/size ETag picks up a patched
+                // SWF immediately -- but an unchanged asset answers 304 instead of the body.
+                res.setHeader('Cache-Control', 'no-cache, must-revalidate, proxy-revalidate');
                 res.setHeader('Surrogate-Control', 'no-store');
-                res.setHeader('Connection', 'close');
             }
             next();
         });
@@ -710,7 +713,15 @@ try {
 
         this.app.use(`/p/${this.flashVersion}`, (req, res, next) => {
             const assetPath = this.getFlashVersionAssetPath(req.path);
-            if (!fs.existsSync(assetPath) || !fs.statSync(assetPath).isFile()) {
+            // One stat instead of existsSync + statSync; this runs for every level SWF fetch.
+            let stats: fs.Stats;
+            try {
+                stats = fs.statSync(assetPath);
+            } catch {
+                next();
+                return;
+            }
+            if (!stats.isFile()) {
                 next();
                 return;
             }
@@ -924,6 +935,12 @@ try {
                 console.log(`[StaticServer] Flash URL: ${baseUrl}${this.getSelectedSwfUrl()}`);
             }
         });
+
+        // Flash pulls ~100 assets per session. Node's 5s default keep-alive expires during
+        // level loads and forces a fresh TCP handshake per asset, costing a full round trip
+        // each on a remote host. headersTimeout must stay above keepAliveTimeout.
+        this.server.keepAliveTimeout = 65_000;
+        this.server.headersTimeout = 70_000;
 
         this.server.on('error', (error) => {
             const socketError = error as NodeJS.ErrnoException;

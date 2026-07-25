@@ -113,6 +113,8 @@ export class LevelHandler {
     private static readonly pendingSharedProgressRefreshes = new Map<string, NodeJS.Timeout>();
     private static readonly sharedProgressRefreshMetrics = new Map<string, { requested: number; deduplicated: number; executed: number }>();
     private static readonly SHARED_PROGRESS_REFRESH_DEDUPE_MS = 25;
+    // Matches the mount travel protection window room changes have always armed.
+    private static readonly ROOM_TRANSITION_GRACE_MS = 4000;
 
     private static deferMissionWork(client: Client, label: string, work: DeferredMissionWork): void {
         const executeWork = (): void => {
@@ -2806,27 +2808,6 @@ export class LevelHandler {
         }
     }
 
-    private static async refreshCurrentCharacterFromSave(client: Client): Promise<void> {
-        if (!client.userId || !client.character) {
-            return;
-        }
-
-        const latestCharacters = await db.loadCharacters(client.userId);
-        client.characters = latestCharacters;
-
-        const currentName = String(client.character.name ?? '').trim().toLowerCase();
-        const latestCharacter = latestCharacters.find((entry) =>
-            String(entry?.name ?? '').trim().toLowerCase() === currentName
-        );
-
-        if (latestCharacter) {
-            client.character = latestCharacter;
-        } else {
-            latestCharacters.push(client.character);
-            client.characters = latestCharacters;
-        }
-    }
-
     private static async saveCurrentCharacterSnapshot(client: Client): Promise<void> {
         if (!client.userId || !client.character) {
             return;
@@ -2973,6 +2954,14 @@ export class LevelHandler {
             client.currentRoomId = roomId;
             GlobalState.refreshSessionIndexes(client);
             if (previousRoomId >= 0 && previousRoomId !== roomId) {
+                // Same window the mount path already granted, but for every player: the door
+                // reposition arrives as one large delta and must not be scored as a teleport.
+                // Without this an on-foot player is clamped back into the room they just left,
+                // which is the position everyone else keeps rendering.
+                client.roomTransitionGraceUntil = Math.max(
+                    client.roomTransitionGraceUntil,
+                    Date.now() + LevelHandler.ROOM_TRANSITION_GRACE_MS
+                );
                 PetHandler.armMountTravelProtection(client, 4000, true);
             }
             LevelHandler.maybeStartTutorialDungeonTraversalTutorial(client, roomId);
@@ -5454,8 +5443,11 @@ export class LevelHandler {
 
         const doorContext = LevelHandler.getActiveDoorTravelContext(client, targetLevel);
         const syncState = LevelHandler.buildTransferSyncState(client, targetLevel, teleportOverride ?? null);
+        // saveCurrentCharacterSnapshot writes the live character and leaves client.characters
+        // holding the persisted list, so the read-back that used to follow it only re-fetched
+        // what we had just written. Dropping it removes a blocking storage round trip from
+        // every region change.
         await LevelHandler.saveCurrentCharacterSnapshot(client);
-        await LevelHandler.refreshCurrentCharacterFromSave(client);
 
         const activeCharacter = client.character;
         if (!activeCharacter) {

@@ -24,6 +24,7 @@ export interface MovementAuthorityClient {
     movementAuthority: MovementAuthorityState;
     pendingTransferUntil: number;
     mountTransferGraceUntil: number;
+    roomTransitionGraceUntil: number;
     activeDungeonCutsceneScope: string;
     clientEntID: number;
     movementSpeedMultiplier?: number;
@@ -313,9 +314,14 @@ export class MovementAuthority {
         return Math.round(state.movementBudgetDistance);
     }
 
+    // A door reposition inside a level moves the player thousands of units in one packet, so
+    // room changes need the same allowance level transfers get. This used to ride on
+    // mountTransferGraceUntil, which armMountTravelProtection only sets for players with a
+    // mount equipped -- on-foot players had their room transition scored as a teleport.
     private static hasTransitionGrace(client: MovementAuthorityClient, nowMs: number): boolean {
         return nowMs < Number(client.pendingTransferUntil ?? 0) ||
             nowMs < Number(client.mountTransferGraceUntil ?? 0) ||
+            nowMs < Number(client.roomTransitionGraceUntil ?? 0) ||
             Boolean(String(client.activeDungeonCutsceneScope ?? '').trim()) ||
             LevelConfig.normalizeLevelName(client.currentLevel) === 'TutorialBoat';
     }

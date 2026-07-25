@@ -200,6 +200,7 @@ export class Client {
     public syncQuestProgress: number | undefined;
     public pendingTransferUntil: number = 0;
     public mountTransferGraceUntil: number = 0;
+    public roomTransitionGraceUntil: number = 0;
     public movementAuthority: MovementAuthorityState = MovementAuthority.createState();
     public startedRoomEvents: Set<string> = new Set();
     public knownEntityIds: Set<number> = new Set();
@@ -573,6 +574,7 @@ export class Client {
         this.syncQuestProgress = undefined;
         this.pendingTransferUntil = 0;
         this.mountTransferGraceUntil = 0;
+        this.roomTransitionGraceUntil = 0;
         MovementAuthority.reset(this, 'gameplay_state_clear');
         this.startedRoomEvents.clear();
         this.knownEntityIds.clear();
