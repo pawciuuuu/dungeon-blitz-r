@@ -38,6 +38,10 @@ function deploy() {
         return;
     }
 
+    // Gate the deploy, not every local build: the sweep takes ~2 minutes, and the moment that
+    // actually matters is shipping a rebuilt SWF to players. Run `npm run verify:client-patches`
+    // by hand after touching a client asset if you want the answer sooner.
+    run('npm run verify:client-patches');
     run('npm run build');
 
     try {

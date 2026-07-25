@@ -8,6 +8,7 @@
     "dev:built": "node tools/runBuiltDevServer.js",
     "dev:discord-bridge:built": "node dist/tools/discordLocalBridge.js discord-bridge.dev.config.json",
     "multiplayer:pm2": "node tools/deployMultiplayer.js",
+    "verify:client-patches": "node tools/verifyClientPatches.js",
     "patch:power-mana-costs": "ts-node scripts/patch_gameswz_power_mana_costs.ts",
     "prebuild": "npm run patch:power-mana-costs",
     "build": "tsc",
