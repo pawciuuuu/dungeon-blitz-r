@@ -724,6 +724,17 @@ try {
             res.sendFile(swzPath);
         });
 
+        this.app.get(/^\/p\/[^/]+\/masterFileList(?:_\d+)?\.xml$/, (req, res, next) => {
+            const assetPath = this.getFlashVersionAssetPath(`/${path.basename(req.path)}`);
+            if (!fs.existsSync(assetPath) || !fs.statSync(assetPath).isFile()) {
+                next();
+                return;
+            }
+
+            res.type('application/xml');
+            res.sendFile(assetPath);
+        });
+
         this.app.get('/DungeonBlitzRemote.swf', (req, res) => {
             const locale = this.resolveSwfLocale(req);
             res.type('application/x-shockwave-flash');

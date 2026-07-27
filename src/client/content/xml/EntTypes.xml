@@ -5997,6 +5997,28 @@
 			<ColorSwap11>0xF0F0A0=0x403816</ColorSwap11>
 		</GfxType>
 	</EntType>
+	<EntType EntName="NPCHomeNeo" parent="Base">
+		<DisplayName>Neo</DisplayName>
+		<DevStatus>New House</DevStatus>
+		<Level>0</Level>
+		<ArmorClass>1</ArmorClass>
+		<HitPoints>0</HitPoints>
+		<Realm>Villager</Realm>
+		<Speed>5</Speed>
+		<Width>80</Width>
+		<Height>130</Height>
+		<Behavior>NPC</Behavior>
+		<EquippedGear/>
+		<GfxType>
+			<AnimFile>Animation_NPC.swf</AnimFile>
+			<FlipAnim>TRUE</FlipAnim>
+			<Shadow>SFX_1.swf/a_ShadowNPC</Shadow>
+			<BaseAnim>ReadyLongCoat</BaseAnim>
+			<AnimScale>0.45</AnimScale>
+			<MoveAnimSpeed>0.75</MoveAnimSpeed>
+			<CustomArt>Animation_NPC.swf/Rival</CustomArt>
+		</GfxType>
+	</EntType>
 	<EntType EntName="NPCTreasureTrove" parent="Base">
 		<DisplayName>NPC Treasure Trove</DisplayName>
 		<DevStatus>New House</DevStatus>

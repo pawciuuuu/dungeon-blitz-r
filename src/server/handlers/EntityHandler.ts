@@ -3697,6 +3697,41 @@ export class EntityHandler {
         this.sendEntity(client, npc);
     }
 
+    static sendCraftTownAuthoredNpcs(client: Client): void {
+        if (client.currentLevel !== 'CraftTown' || !client.playerSpawned) {
+            return;
+        }
+
+        const levelMap = EntityHandler.getLevelMapForClient(client, true);
+        if (!levelMap) {
+            return;
+        }
+
+        const npcs = NpcLoader.getNpcsForLevel('CraftTown').filter((npc) => String(npc.name ?? '') === 'NPCHomeNeo');
+        for (const npc of npcs) {
+            const entityId = Math.max(0, Math.round(Number(npc.id) || 0));
+            if (entityId <= 0 || client.knownEntityIds.has(entityId)) {
+                continue;
+            }
+
+            let entityProps = levelMap.get(entityId);
+            if (!entityProps) {
+                entityProps = {
+                    ...Entity.fromNpc(npc),
+                    clientSpawned: false
+                };
+                levelMap.set(entityId, entityProps);
+            }
+
+            if (entityProps.isPlayer || entityProps.clientSpawned) {
+                continue;
+            }
+
+            client.entities.set(entityId, { ...entityProps });
+            EntityHandler.sendEntity(client, entityProps);
+        }
+    }
+
     // 0x8
     static handleEntityFullUpdate(client: Client, data: Buffer): void {
         const br = new BitReader(data);
@@ -3940,6 +3975,7 @@ export class EntityHandler {
              EntityHandler.broadcastPlayerSpawn(client, props);
              EntityHandler.broadcastPlayerMountState(client, props.id, equippedMountId);
              BuildingHandler.refreshCraftTownBuildingsOnSpawn(client);
+             EntityHandler.sendCraftTownAuthoredNpcs(client);
         }
     }
 

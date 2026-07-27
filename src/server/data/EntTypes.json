@@ -3494,6 +3494,20 @@
         "Behavior": "NPC"
       },
       {
+        "EntName": "NPCHomeNeo",
+        "parent": "Base",
+        "DisplayName": "Neo",
+        "DevStatus": "New House",
+        "Level": "0",
+        "ArmorClass": "1",
+        "HitPoints": "0",
+        "Realm": "Villager",
+        "Speed": "5",
+        "Width": "80",
+        "Height": "130",
+        "Behavior": "NPC"
+      },
+      {
         "EntName": "NPCTreasureTrove",
         "parent": "Base",
         "DisplayName": "Treasure Trove",
