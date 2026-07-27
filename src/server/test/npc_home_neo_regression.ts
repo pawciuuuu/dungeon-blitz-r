@@ -118,15 +118,26 @@ function testLoginSwzIncludesHomeNeoEntType(): void {
     const entTypes = ctx.chunks.find((entry: any) => entry.xml.includes('<EntTypes'));
 
     assert.ok(entTypes, 'Login.swz should include EntTypes data');
-    assert.equal(entTypes!.xml.includes('<EntType EntName="NPCHomeNeo"'), true);
-    assert.equal(entTypes!.xml.includes('<BaseAnim>ReadyLongCoat</BaseAnim>'), true);
-    assert.equal(entTypes!.xml.includes('<CustomArt>Animation_NPC.swf/Rival</CustomArt>'), true);
+    const neo = entTypes!.xml.match(/<EntType EntName="NPCHomeNeo"[\s\S]*?<\/EntType>/);
+    assert.ok(neo, 'Login.swz should include the NPCHomeNeo EntType');
+    assert.equal(neo![0].includes('<BaseAnim>ReadyLongCoat</BaseAnim>'), true);
+    assert.equal(neo![0].includes('<CustomArt>Animation_NPC.swf/Rival</CustomArt>'), true);
+    // 0.45 is the stationary-shopkeeper scale; world NPCs on this rig render at 0.65.
+    assert.equal(neo![0].includes('<AnimScale>0.65</AnimScale>'), true);
+}
+
+function testNeoScaleMatchesSourceEntTypes(): void {
+    const xml = fs.readFileSync(path.resolve(__dirname, '../../client/content/xml/EntTypes.xml'), 'utf8');
+    const neo = xml.match(/<EntType EntName="NPCHomeNeo"[\s\S]*?<\/EntType>/);
+    assert.ok(neo, 'source EntTypes.xml should include NPCHomeNeo');
+    assert.equal(neo![0].includes('<AnimScale>0.65</AnimScale>'), true, 'source EntTypes.xml must not drift from Login.swz');
 }
 
 function main(): void {
     testCraftTownAuthoredNeoNpcSpawnsAfterPlayerSpawn();
     testStaticServerAliasesVersionedManifestRequests();
     testLoginSwzIncludesHomeNeoEntType();
+    testNeoScaleMatchesSourceEntTypes();
     console.log('npc_home_neo_regression passed');
 }
 
