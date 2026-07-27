@@ -254,6 +254,13 @@ export class LevelHandler {
             return;
         }
 
+        // Taking a door mid-jump would otherwise record the airborne position as the return
+        // point for this level, which the client then drops the player from on the way back.
+        // The stored position is the last grounded one, so leaving it alone is correct.
+        if ((entity as { airborne?: boolean } | null | undefined)?.airborne) {
+            return;
+        }
+
         const liveX = Number(entity?.x);
         const liveY = Number(entity?.y);
         if (!Number.isFinite(liveX) || !Number.isFinite(liveY)) {
@@ -878,18 +885,34 @@ export class LevelHandler {
                 syncEntryLevel = sourceLevel;
                 const liveEntryX = Number(entryEntity?.x);
                 const liveEntryY = Number(entryEntity?.y);
+                // This is the point the player is put back on when they walk out of the dungeon
+                // (resolveDungeonExitSpawn) and when they reconnect out of it
+                // (repairDungeonLocationBeforeSave). Neither consumer can tell whether there is
+                // floor under it, so it has to come from a position the player is known to have
+                // stood on.
+                //
+                // The live entity is not that. The server has no collision -- entity.x/y is only
+                // a sum of movement deltas, thinned by MovementAuthority rejections and packet
+                // coalescing, and its `airborne` flag is whatever the last 0x07 happened to
+                // carry. Recording it here is what dropped players through Dread Valhaven after
+                // refreshing inside Dread The East Wing.
+                //
+                // CurrentLevel/PreviousLevel only ever accept grounded packets, so the recorded
+                // entry is the trustworthy one and wins. The live position is the fallback for
+                // the case it cannot cover: no saved record for the source level at all.
+                const liveEntryGrounded = !(entryEntity as { airborne?: boolean } | null | undefined)?.airborne;
                 const recordedEntry = LevelConfig.resolveDungeonEntryCoordinates(
                     normalizedTargetLevel,
                     sourceLevel,
                     client.character
                 );
-                if (Number.isFinite(liveEntryX) && Number.isFinite(liveEntryY)) {
-                    syncEntryX = Math.round(liveEntryX);
-                    syncEntryY = Math.round(liveEntryY);
-                    syncEntryHasCoord = true;
-                } else if (recordedEntry.hasCoord) {
+                if (recordedEntry.hasCoord) {
                     syncEntryX = Math.round(recordedEntry.x);
                     syncEntryY = Math.round(recordedEntry.y);
+                    syncEntryHasCoord = true;
+                } else if (liveEntryGrounded && Number.isFinite(liveEntryX) && Number.isFinite(liveEntryY)) {
+                    syncEntryX = Math.round(liveEntryX);
+                    syncEntryY = Math.round(liveEntryY);
                     syncEntryHasCoord = true;
                 } else {
                     syncEntryX = undefined;
@@ -6108,7 +6131,17 @@ export class LevelHandler {
         
         // Update Saved Coords if it's us and safe level
         if (isSelf && client.character) {
-            if (LevelConfig.isSaveAllowedLevel(currentLevel)) {
+            // Only a position the player is actually standing on may be saved.
+            //
+            // Every movement packet used to overwrite the saved coordinates, including the
+            // ones sent mid-jump, mid-fall or while a knockback was carrying the player
+            // through the air. Whatever happened to be in flight when they left the level
+            // became the point they are returned to, and the client drops them there --
+            // a Jade City save at y=-848 has no floor within 1700px below it, so the return
+            // replayed that fall every time. Standing still on the ground now wins, and an
+            // airborne packet keeps the last grounded position.
+            const isGroundedPosition = !isAirborne && !flags.bJumping && !flags.bDropping;
+            if (LevelConfig.isSaveAllowedLevel(currentLevel) && isGroundedPosition) {
                 if (!client.character.CurrentLevel) {
                     client.character.CurrentLevel = { name: currentLevel, x: ent.x, y: ent.y };
                 } else {
@@ -6116,6 +6149,23 @@ export class LevelHandler {
                     client.character.CurrentLevel.x = ent.x;
                     client.character.CurrentLevel.y = ent.y;
                 }
+            } else if (
+                LevelConfig.isSaveAllowedLevel(currentLevel) &&
+                LevelConfig.normalizeLevelName(client.character.CurrentLevel?.name) !==
+                    LevelConfig.normalizeLevelName(currentLevel)
+            ) {
+                // Airborne on arrival in a new level: the level itself still has to be
+                // recorded, or a logout mid-fall would send the player back to the level
+                // they came from. Pair it with the authored spawn where the level has one --
+                // otherwise keep the reported position, which the next grounded packet
+                // replaces anyway.
+                const spawn = LevelConfig.getSpawn(currentLevel);
+                const hasAuthoredSpawn = Number(spawn?.x ?? 0) !== 0 || Number(spawn?.y ?? 0) !== 0;
+                client.character.CurrentLevel = {
+                    name: currentLevel,
+                    x: Math.round(Number(hasAuthoredSpawn ? spawn.x : ent.x) || 0),
+                    y: Math.round(Number(hasAuthoredSpawn ? spawn.y : ent.y) || 0)
+                };
             }
 
             if (currentLevel === 'CraftTownTutorial') {
