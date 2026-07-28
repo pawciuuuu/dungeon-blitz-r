@@ -33,11 +33,11 @@ const DEFINE_SPRITE_TAG = 39;
 const PLACE_OBJECT2_TAG = 26;
 
 // Everything above the waist is nudged down 300 twips to close the gap where the
-// coat met the legs; the legs stay put. The head also scales to 6.3/7, with its
+// coat met the legs; the legs stay put. The head also scales to 4.41/7, with its
 // translate compensating so the neck stays on the same line and the head keeps
 // its horizontal centre. Tune these to move Neo, no geometry edits needed.
 const NEO_PART_PLACEMENT: Record<string, { sprite: number; scale: number; x: number; y: number }> = {
-    head: { sprite: 482, scale: 6.3, x: 301, y: 178 },
+    head: { sprite: 482, scale: 4.41, x: 1114, y: -151 },
     torso: { sprite: 56, scale: 7, x: 0, y: 300 },
     rightArm: { sprite: 302, scale: 7, x: 0, y: 300 },
     leftArm: { sprite: 328, scale: 7, x: 0, y: 300 },
@@ -155,7 +155,7 @@ function testNeoPartPlacement(): void {
             { x: expected.x, y: expected.y },
             `Neo's ${part} placement drifted`
         );
-        // Scale is stored as 16.16 fixed point, so 6.3 does not round-trip exactly.
+        // Scale is stored as 16.16 fixed point, so 4.41 does not round-trip exactly.
         assert.ok(
             Math.abs(matrix.scale - expected.scale) < 1e-4,
             `Neo's ${part} scale drifted: ${matrix.scale} != ${expected.scale}`
