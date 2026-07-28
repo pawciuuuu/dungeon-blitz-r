@@ -40,7 +40,7 @@ const PLACE_OBJECT2_TAG = 26;
 const NEO_PART_PLACEMENT: Record<string, {
     sprite: number; scaleX: number; scaleY: number; rs0: number; rs1: number; x: number; y: number;
 }> = {
-    head: { sprite: 482, scaleX: 3.8002, scaleY: 2.6176, rs0: 0, rs1: 0, x: 1144, y: -697 },
+    head: { sprite: 482, scaleX: 4.0428, scaleY: 2.7847, rs0: 0, rs1: 0, x: 998, y: -607 },
     torso: { sprite: 56, scaleX: 8.2931, scaleY: 7.0368, rs0: 0, rs1: 0, x: -39, y: 295 },
     backArm: { sprite: 328, scaleX: 4.4135, scaleY: 4.6498, rs0: 0, rs1: 0, x: -77, y: -150 },
     frontArm: { sprite: 302, scaleX: 5.5901, scaleY: 5.5598, rs0: 0.3096, rs1: -0.3079, x: 68, y: -85 },
