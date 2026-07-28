@@ -37,7 +37,7 @@ const PLACE_OBJECT2_TAG = 26;
 // translate compensating so the neck stays on the same line and the head keeps
 // its horizontal centre. Tune these to move Neo, no geometry edits needed.
 const NEO_PART_PLACEMENT: Record<string, { sprite: number; scale: number; x: number; y: number }> = {
-    head: { sprite: 482, scale: 5.355, x: 707, y: 14 },
+    head: { sprite: 482, scale: 5.355, x: 507, y: 414 },
     torso: { sprite: 56, scale: 7, x: 0, y: 300 },
     rightArm: { sprite: 302, scale: 7, x: 0, y: 300 },
     leftArm: { sprite: 328, scale: 7, x: 0, y: 300 },
