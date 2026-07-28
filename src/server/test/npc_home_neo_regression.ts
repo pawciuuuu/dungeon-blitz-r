@@ -1,6 +1,7 @@
 import { strict as assert } from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as zlib from 'zlib';
 import { Entity } from '../core/Entity';
 import { GameData } from '../core/GameData';
 import { GlobalState } from '../core/GlobalState';
@@ -14,6 +15,97 @@ import { parseSwz } from '../scripts/swzPatchUtils';
 import { getCraftTownHomeInstanceId } from '../utils/HomeVisitGuard';
 
 const NEO_ID = 1761501;
+
+// Neo wears the Rival art set, so his head is sprite 482 (a_Face2_Rival). The
+// stock Rival face is anchored ~178 twips lower than every shipped LongCoat set,
+// which buried his head in his collar. The face art itself (DefineShape 481) is
+// untouched; sprite 482's placement matrix carries the correction, lining his
+// neck up with the Book/Dyer head that Neo's body proportions come from.
+const NEO_FACE_SPRITE = 482;
+const NEO_HEAD_TRANSLATE = { x: 830, y: -1246 };
+const DEFINE_SPRITE_TAG = 39;
+const PLACE_OBJECT2_TAG = 26;
+
+function readSwfTags(file: string): { code: number; payload: Buffer }[] {
+    const raw = fs.readFileSync(file);
+    const body = raw.subarray(0, 3).toString('ascii') === 'CWS'
+        ? zlib.inflateSync(raw.subarray(8))
+        : raw.subarray(8);
+    // Frame header: a RECT (5 size bits, 4 fields) then frame rate and count.
+    return readTagStream(body, Math.ceil((5 + 4 * (body[0] >> 3)) / 8) + 4);
+}
+
+function readTagStream(buf: Buffer, start: number): { code: number; payload: Buffer }[] {
+    const tags: { code: number; payload: Buffer }[] = [];
+    let pos = start;
+    while (pos + 2 <= buf.length) {
+        const header = buf.readUInt16LE(pos);
+        pos += 2;
+        const code = header >> 6;
+        let len = header & 0x3f;
+        if (len === 0x3f) {
+            len = buf.readUInt32LE(pos);
+            pos += 4;
+        }
+        if (code === 0) {
+            break;
+        }
+        tags.push({ code, payload: buf.subarray(pos, pos + len) });
+        pos += len;
+    }
+    return tags;
+}
+
+/** Reads the translation out of a PlaceObject2 MATRIX, in twips. */
+function readPlaceTranslate(payload: Buffer): { x: number; y: number } {
+    const flags = payload[0];
+    assert.ok(flags & 0x04, 'PlaceObject2 should carry a matrix');
+    let pos = 3 + ((flags & 0x02) ? 2 : 0); // flags, depth, optional character id
+
+    let bit = 0;
+    const read = (count: number): number => {
+        let value = 0;
+        for (let i = 0; i < count; i += 1) {
+            value = (value << 1) | ((payload[pos] >> (7 - bit)) & 1);
+            bit += 1;
+            if (bit === 8) {
+                bit = 0;
+                pos += 1;
+            }
+        }
+        return value;
+    };
+    const readSigned = (count: number): number => {
+        const value = read(count);
+        return count && (value & (1 << (count - 1))) ? value - (1 << count) : value;
+    };
+
+    if (read(1)) {
+        read(read(5) * 2); // scale
+    }
+    if (read(1)) {
+        read(read(5) * 2); // rotate / skew
+    }
+    const translateBits = read(5);
+    return { x: readSigned(translateBits), y: readSigned(translateBits) };
+}
+
+function testNeoHeadAnchoredToBookNeckLine(): void {
+    const tags = readSwfTags(path.resolve(__dirname, '../../client/content/localhost/p/cag/Animation_NPC.swf'));
+    const face = tags.find((tag) => tag.code === DEFINE_SPRITE_TAG
+        && tag.payload.length >= 4
+        && tag.payload.readUInt16LE(0) === NEO_FACE_SPRITE);
+    assert.ok(face, `Animation_NPC.swf should define sprite ${NEO_FACE_SPRITE}`);
+
+    // DefineSprite payload: spriteId, frameCount, then a nested tag stream.
+    const place = readTagStream(face!.payload, 4).find((tag) => tag.code === PLACE_OBJECT2_TAG);
+    assert.ok(place, 'a_Face2_Rival should place its face shape');
+    assert.deepEqual(
+        readPlaceTranslate(place!.payload),
+        NEO_HEAD_TRANSLATE,
+        "Neo's head must stay anchored to the Book neck line"
+    );
+}
 
 function ensureDataLoaded(): void {
     const dataDir = path.resolve(__dirname, '../data');
@@ -138,6 +230,7 @@ function main(): void {
     testStaticServerAliasesVersionedManifestRequests();
     testLoginSwzIncludesHomeNeoEntType();
     testNeoScaleMatchesSourceEntTypes();
+    testNeoHeadAnchoredToBookNeckLine();
     console.log('npc_home_neo_regression passed');
 }
 
