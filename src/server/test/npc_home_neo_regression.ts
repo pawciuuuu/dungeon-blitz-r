@@ -42,7 +42,7 @@ const PLACE_OBJECT2_TAG = 26;
 // head at its drawn proportions. Re-exporting the head at a different canvas
 // aspect means recomputing these two numbers.
 const NEO_PART_PLACEMENT: Record<string, { sprite: number; scaleX: number; scaleY: number; x: number; y: number }> = {
-    head: { sprite: 482, scaleX: 6.1183, scaleY: 4.2574, x: 152, y: -70 },
+    head: { sprite: 482, scaleX: 5.6288, scaleY: 3.9168, x: 221, y: -129 },
     torso: { sprite: 56, scaleX: 7, scaleY: 7, x: 0, y: 300 },
     rightArm: { sprite: 302, scaleX: 7, scaleY: 7, x: 0, y: 300 },
     leftArm: { sprite: 328, scaleX: 6.3, scaleY: 6.3, x: 28, y: 117 },
