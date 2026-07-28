@@ -32,23 +32,20 @@ const DEFINE_SHAPE_TAGS = new Set([2, 22, 32, 83]);
 const DEFINE_SPRITE_TAG = 39;
 const PLACE_OBJECT2_TAG = 26;
 
-// Everything above the waist is nudged down 300 twips to close the gap where the
-// coat met the legs; the left arm is scaled to 6.3/7 pinned at the shoulder.
-//
-// The head's scale is deliberately non-uniform. FFDec maps an imported SVG's
-// canvas onto the container shape's bounds RECT, and Neo's head art has a square
-// 47x47 canvas while the container is the 498x722 Book Face2 footprint -- so the
-// import squashes it by 498/722. scaleY/scaleX undoes exactly that, leaving the
-// head at its drawn proportions. Re-exporting the head at a different canvas
-// aspect means recomputing these two numbers.
-const NEO_PART_PLACEMENT: Record<string, { sprite: number; scaleX: number; scaleY: number; x: number; y: number }> = {
-    head: { sprite: 482, scaleX: 3.231, scaleY: 2.2166, x: 1344, y: -500 },
-    torso: { sprite: 56, scaleX: 7, scaleY: 7, x: 0, y: 300 },
-    rightArm: { sprite: 302, scaleX: 7, scaleY: 7, x: 0, y: 300 },
-    leftArm: { sprite: 328, scaleX: 6.3, scaleY: 6.3, x: 28, y: 117 },
-    legs: { sprite: 200, scaleX: 7, scaleY: 7, x: 100, y: 0 }
+// Every part's placement is solved from Neo's Figma composition, mapping each
+// frame through the rig chain at 21.2506 twips per Figma unit. The scales are
+// non-uniform because each shape's container squashed the imported SVG; these
+// matrices undo that, so the figure matches the drawn proportions. The front
+// arm additionally carries the composition's -3.17 degree rotation.
+const NEO_PART_PLACEMENT: Record<string, {
+    sprite: number; scaleX: number; scaleY: number; rs0: number; rs1: number; x: number; y: number;
+}> = {
+    head: { sprite: 482, scaleX: 3.8002, scaleY: 2.6176, rs0: 0, rs1: 0, x: 1144, y: -697 },
+    torso: { sprite: 56, scaleX: 8.2931, scaleY: 7.0368, rs0: 0, rs1: 0, x: -39, y: 295 },
+    backArm: { sprite: 328, scaleX: 4.4135, scaleY: 4.6498, rs0: 0, rs1: 0, x: -77, y: -150 },
+    frontArm: { sprite: 302, scaleX: 5.5901, scaleY: 5.5598, rs0: 0.3096, rs1: -0.3079, x: 68, y: -85 },
+    legs: { sprite: 200, scaleX: 7.4181, scaleY: 7.4454, rs0: 0, rs1: 0, x: 93, y: -20 }
 };
-
 function readSwfTags(file: string): { code: number; payload: Buffer }[] {
     const raw = fs.readFileSync(file);
     const body = raw.subarray(0, 3).toString('ascii') === 'CWS'
@@ -105,7 +102,7 @@ function readShapeBounds(payload: Buffer): [number, number, number, number] {
 }
 
 /** Reads scale and translation out of a PlaceObject2 MATRIX. */
-function readPlaceMatrix(payload: Buffer): { scaleX: number; scaleY: number; x: number; y: number } {
+function readPlaceMatrix(payload: Buffer): { scaleX: number; scaleY: number; rs0: number; rs1: number; x: number; y: number } {
     const flags = payload[0];
     assert.ok(flags & 0x04, 'PlaceObject2 should carry a matrix');
     let pos = 3 + ((flags & 0x02) ? 2 : 0); // flags, depth, optional character id
@@ -134,13 +131,15 @@ function readPlaceMatrix(payload: Buffer): { scaleX: number; scaleY: number; x: 
         scaleX = readSigned(bits) / 65536; // 16.16 fixed point
         scaleY = readSigned(bits) / 65536;
     }
+    let rs0 = 0;
+    let rs1 = 0;
     if (read(1)) {
         const bits = read(5);
-        readSigned(bits);
-        readSigned(bits);
+        rs0 = readSigned(bits) / 65536;
+        rs1 = readSigned(bits) / 65536;
     }
     const translateBits = read(5);
-    return { scaleX, scaleY, x: readSigned(translateBits), y: readSigned(translateBits) };
+    return { scaleX, scaleY, rs0, rs1, x: readSigned(translateBits), y: readSigned(translateBits) };
 }
 
 function testNeoPartPlacement(): void {
@@ -162,7 +161,7 @@ function testNeoPartPlacement(): void {
             `Neo's ${part} placement drifted`
         );
         // Scale is 16.16 fixed point, so fractional values need not round-trip exactly.
-        for (const axis of ['scaleX', 'scaleY'] as const) {
+        for (const axis of ['scaleX', 'scaleY', 'rs0', 'rs1'] as const) {
             assert.ok(
                 Math.abs(matrix[axis] - expected[axis]) < 1e-4,
                 `Neo's ${part} ${axis} drifted: ${matrix[axis]} != ${expected[axis]}`
