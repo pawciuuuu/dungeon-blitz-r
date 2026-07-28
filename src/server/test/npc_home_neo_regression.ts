@@ -33,11 +33,11 @@ const DEFINE_SPRITE_TAG = 39;
 const PLACE_OBJECT2_TAG = 26;
 
 // Everything above the waist is nudged down 300 twips to close the gap where the
-// coat met the legs. The head scales to 5.355/7 and the left arm to 6.3/7, each
+// coat met the legs. The head scales to 5.0/7 and the left arm to 6.3/7, each
 // with a translate that pins it (head at the neck, arm at the shoulder) so only
 // its size changes. ~75 twips is one on-screen pixel at Neo's 0.65 AnimScale.
 const NEO_PART_PLACEMENT: Record<string, { sprite: number; scale: number; x: number; y: number }> = {
-    head: { sprite: 482, scale: 5.355, x: 507, y: 564 },
+    head: { sprite: 482, scale: 5.0, x: 665, y: 473 },
     torso: { sprite: 56, scale: 7, x: 0, y: 300 },
     rightArm: { sprite: 302, scale: 7, x: 0, y: 300 },
     leftArm: { sprite: 328, scale: 6.3, x: 28, y: 117 },
@@ -155,7 +155,7 @@ function testNeoPartPlacement(): void {
             { x: expected.x, y: expected.y },
             `Neo's ${part} placement drifted`
         );
-        // Scale is stored as 16.16 fixed point, so 5.355 does not round-trip exactly.
+        // Scale is stored as 16.16 fixed point, so a fractional scale need not round-trip exactly.
         assert.ok(
             Math.abs(matrix.scale - expected.scale) < 1e-4,
             `Neo's ${part} scale drifted: ${matrix.scale} != ${expected.scale}`
@@ -292,15 +292,15 @@ function testLoginSwzIncludesHomeNeoEntType(): void {
     assert.ok(neo, 'Login.swz should include the NPCHomeNeo EntType');
     assert.equal(neo![0].includes('<BaseAnim>ReadyLongCoat</BaseAnim>'), true);
     assert.equal(neo![0].includes('<CustomArt>Animation_NPC.swf/Rival</CustomArt>'), true);
-    // 0.45 is the stationary-shopkeeper scale; world NPCs on this rig render at 0.65.
-    assert.equal(neo![0].includes('<AnimScale>0.65</AnimScale>'), true);
+    // Other NPCs on this rig sit at 0.6-0.7; Neo is deliberately the largest.
+    assert.equal(neo![0].includes('<AnimScale>0.8</AnimScale>'), true);
 }
 
 function testNeoScaleMatchesSourceEntTypes(): void {
     const xml = fs.readFileSync(path.resolve(__dirname, '../../client/content/xml/EntTypes.xml'), 'utf8');
     const neo = xml.match(/<EntType EntName="NPCHomeNeo"[\s\S]*?<\/EntType>/);
     assert.ok(neo, 'source EntTypes.xml should include NPCHomeNeo');
-    assert.equal(neo![0].includes('<AnimScale>0.65</AnimScale>'), true, 'source EntTypes.xml must not drift from Login.swz');
+    assert.equal(neo![0].includes('<AnimScale>0.8</AnimScale>'), true, 'source EntTypes.xml must not drift from Login.swz');
 }
 
 function main(): void {

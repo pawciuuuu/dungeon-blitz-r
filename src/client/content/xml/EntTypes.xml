@@ -6014,7 +6014,7 @@
 			<FlipAnim>TRUE</FlipAnim>
 			<Shadow>SFX_1.swf/a_ShadowNPC</Shadow>
 			<BaseAnim>ReadyLongCoat</BaseAnim>
-			<AnimScale>0.65</AnimScale>
+			<AnimScale>0.8</AnimScale>
 			<MoveAnimSpeed>0.75</MoveAnimSpeed>
 			<CustomArt>Animation_NPC.swf/Rival</CustomArt>
 		</GfxType>
