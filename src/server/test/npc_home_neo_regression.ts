@@ -33,15 +33,20 @@ const DEFINE_SPRITE_TAG = 39;
 const PLACE_OBJECT2_TAG = 26;
 
 // Everything above the waist is nudged down 300 twips to close the gap where the
-// coat met the legs. The head scales to 5.0/7 and the left arm to 6.3/7, each
-// with a translate that pins it (head at the neck, arm at the shoulder) so only
-// its size changes. ~75 twips is one on-screen pixel at Neo's 0.65 AnimScale.
-const NEO_PART_PLACEMENT: Record<string, { sprite: number; scale: number; x: number; y: number }> = {
-    head: { sprite: 482, scale: 5.0, x: 665, y: 473 },
-    torso: { sprite: 56, scale: 7, x: 0, y: 300 },
-    rightArm: { sprite: 302, scale: 7, x: 0, y: 300 },
-    leftArm: { sprite: 328, scale: 6.3, x: 28, y: 117 },
-    legs: { sprite: 200, scale: 7, x: 100, y: 0 }
+// coat met the legs; the left arm is scaled to 6.3/7 pinned at the shoulder.
+//
+// The head's scale is deliberately non-uniform. FFDec maps an imported SVG's
+// canvas onto the container shape's bounds RECT, and Neo's head art has a square
+// 47x47 canvas while the container is the 498x722 Book Face2 footprint -- so the
+// import squashes it by 498/722. scaleY/scaleX undoes exactly that, leaving the
+// head at its drawn proportions. Re-exporting the head at a different canvas
+// aspect means recomputing these two numbers.
+const NEO_PART_PLACEMENT: Record<string, { sprite: number; scaleX: number; scaleY: number; x: number; y: number }> = {
+    head: { sprite: 482, scaleX: 6.1183, scaleY: 4.2574, x: 152, y: -70 },
+    torso: { sprite: 56, scaleX: 7, scaleY: 7, x: 0, y: 300 },
+    rightArm: { sprite: 302, scaleX: 7, scaleY: 7, x: 0, y: 300 },
+    leftArm: { sprite: 328, scaleX: 6.3, scaleY: 6.3, x: 28, y: 117 },
+    legs: { sprite: 200, scaleX: 7, scaleY: 7, x: 100, y: 0 }
 };
 
 function readSwfTags(file: string): { code: number; payload: Buffer }[] {
@@ -100,7 +105,7 @@ function readShapeBounds(payload: Buffer): [number, number, number, number] {
 }
 
 /** Reads scale and translation out of a PlaceObject2 MATRIX. */
-function readPlaceMatrix(payload: Buffer): { scale: number; x: number; y: number } {
+function readPlaceMatrix(payload: Buffer): { scaleX: number; scaleY: number; x: number; y: number } {
     const flags = payload[0];
     assert.ok(flags & 0x04, 'PlaceObject2 should carry a matrix');
     let pos = 3 + ((flags & 0x02) ? 2 : 0); // flags, depth, optional character id
@@ -122,11 +127,12 @@ function readPlaceMatrix(payload: Buffer): { scale: number; x: number; y: number
         return count && (value & (1 << (count - 1))) ? value - (1 << count) : value;
     };
 
-    let scale = 1;
+    let scaleX = 1;
+    let scaleY = 1;
     if (read(1)) {
         const bits = read(5);
-        scale = readSigned(bits) / 65536; // 16.16 fixed point
-        readSigned(bits);
+        scaleX = readSigned(bits) / 65536; // 16.16 fixed point
+        scaleY = readSigned(bits) / 65536;
     }
     if (read(1)) {
         const bits = read(5);
@@ -134,7 +140,7 @@ function readPlaceMatrix(payload: Buffer): { scale: number; x: number; y: number
         readSigned(bits);
     }
     const translateBits = read(5);
-    return { scale, x: readSigned(translateBits), y: readSigned(translateBits) };
+    return { scaleX, scaleY, x: readSigned(translateBits), y: readSigned(translateBits) };
 }
 
 function testNeoPartPlacement(): void {
@@ -155,11 +161,13 @@ function testNeoPartPlacement(): void {
             { x: expected.x, y: expected.y },
             `Neo's ${part} placement drifted`
         );
-        // Scale is stored as 16.16 fixed point, so a fractional scale need not round-trip exactly.
-        assert.ok(
-            Math.abs(matrix.scale - expected.scale) < 1e-4,
-            `Neo's ${part} scale drifted: ${matrix.scale} != ${expected.scale}`
-        );
+        // Scale is 16.16 fixed point, so fractional values need not round-trip exactly.
+        for (const axis of ['scaleX', 'scaleY'] as const) {
+            assert.ok(
+                Math.abs(matrix[axis] - expected[axis]) < 1e-4,
+                `Neo's ${part} ${axis} drifted: ${matrix[axis]} != ${expected[axis]}`
+            );
+        }
     }
 }
 
