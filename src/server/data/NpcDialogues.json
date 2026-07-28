@@ -3307,7 +3307,7 @@
       }
     },
     "CraftTown": {
-      "npchomeneo": {
+      "archivistneo": {
         "displayName": "Archivist Neo",
         "defaultLines": [
           "Welcome to the archive. Mind the dust.",

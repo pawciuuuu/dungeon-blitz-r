@@ -8,13 +8,13 @@
     "team": 3,
     "untargetable": false,
     "render_depth_offset": -45,
-    "character_name": "",
+    "character_name": "Archivist Neo",
     "DramaAnim": "",
     "SleepAnim": "",
     "summonerId": 0,
     "power_id": 0,
     "entState": 1,
-    "facing_left": true,
+    "facing_left": false,
     "health_delta": 0,
     "buffs": []
   }

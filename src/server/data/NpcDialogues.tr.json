@@ -3160,7 +3160,7 @@
       }
     },
     "CraftTown": {
-      "npchomeneo": {
+      "archivistneo": {
         "displayName": "Arsivci Neo",
         "defaultLines": [
           "Arsive hos geldin. Toza dikkat et.",

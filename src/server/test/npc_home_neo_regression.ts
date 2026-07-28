@@ -248,7 +248,16 @@ function readSerializedNpcEntity(payload: Buffer): Record<string, unknown> {
     const y = br.readMethod45();
     br.readMethod45(); // velocity
     const team = br.readMethod6(Entity.TEAM_BITS);
-    return { id, name, isPlayer, x, y, team };
+    br.readMethod6(1); // player extras flag
+    br.readMethod6(1); // untargetable
+    br.readMethod706(); // render depth offset
+    if (br.readMethod6(1)) {
+        br.readMethod4(); // behavior speed
+    }
+    // The cue's character_name is what makes the client treat an entity as a
+    // talkable NPC; without it Neo is just scenery.
+    const characterName = br.readMethod6(1) ? br.readMethod13() : '';
+    return { id, name, isPlayer, x, y, team, characterName };
 }
 
 function testCraftTownAuthoredNeoNpcSpawnsAfterPlayerSpawn(): void {
@@ -269,7 +278,8 @@ function testCraftTownAuthoredNeoNpcSpawnsAfterPlayerSpawn(): void {
         isPlayer: false,
         x: NEO_LIBRARY_X,
         y: NEO_LIBRARY_Y,
-        team: 3
+        team: 3,
+        characterName: 'Archivist Neo'
     });
     assert.equal(client.entities.get(NEO_ID)?.name, 'NPCHomeNeo');
     assert.equal(client.knownEntityIds.has(NEO_ID), true);
@@ -312,7 +322,7 @@ function testHomeNpcsAnswerWhenTalkedTo(): void {
     }
 
     for (const [id, npcKey] of [
-        [NEO_ID, 'npchomeneo'],
+        [NEO_ID, 'archivistneo'],
         [900001, 'npchomemailbox'],
         [900002, 'npchomexpbonus']
     ] as const) {
@@ -351,14 +361,14 @@ function testLoginSwzIncludesHomeNeoEntType(): void {
     assert.equal(neo![0].includes('<BaseAnim>ReadyLongCoat</BaseAnim>'), true);
     assert.equal(neo![0].includes('<CustomArt>Animation_NPC.swf/Rival</CustomArt>'), true);
     // Other NPCs on this rig sit at 0.6-0.7; Neo is deliberately the largest.
-    assert.equal(neo![0].includes('<AnimScale>0.8</AnimScale>'), true);
+    assert.equal(neo![0].includes('<AnimScale>0.88</AnimScale>'), true);
 }
 
 function testNeoScaleMatchesSourceEntTypes(): void {
     const xml = fs.readFileSync(path.resolve(__dirname, '../../client/content/xml/EntTypes.xml'), 'utf8');
     const neo = xml.match(/<EntType EntName="NPCHomeNeo"[\s\S]*?<\/EntType>/);
     assert.ok(neo, 'source EntTypes.xml should include NPCHomeNeo');
-    assert.equal(neo![0].includes('<AnimScale>0.8</AnimScale>'), true, 'source EntTypes.xml must not drift from Login.swz');
+    assert.equal(neo![0].includes('<AnimScale>0.88</AnimScale>'), true, 'source EntTypes.xml must not drift from Login.swz');
     assert.equal(neo![0].includes('<DisplayName>Archivist Neo</DisplayName>'), true, 'source EntTypes.xml must not drift from Login.swz');
 }
 
