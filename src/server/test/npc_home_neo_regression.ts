@@ -29,6 +29,20 @@ const NEO_PART_FOOTPRINTS: Record<string, { neo: number; book: number }> = {
     Torso07: { neo: 55, book: 71 }
 };
 const DEFINE_SHAPE_TAGS = new Set([2, 22, 32, 83]);
+const DEFINE_SPRITE_TAG = 39;
+const PLACE_OBJECT2_TAG = 26;
+
+// Everything above the waist is nudged down 300 twips to close the gap where the
+// coat met the legs; the legs stay put. The head also scales to 6.3/7, with its
+// translate compensating so the neck stays on the same line and the head keeps
+// its horizontal centre. Tune these to move Neo, no geometry edits needed.
+const NEO_PART_PLACEMENT: Record<string, { sprite: number; scale: number; x: number; y: number }> = {
+    head: { sprite: 482, scale: 6.3, x: 301, y: 178 },
+    torso: { sprite: 56, scale: 7, x: 0, y: 300 },
+    rightArm: { sprite: 302, scale: 7, x: 0, y: 300 },
+    leftArm: { sprite: 328, scale: 7, x: 0, y: 300 },
+    legs: { sprite: 200, scale: 7, x: 0, y: 0 }
+};
 
 function readSwfTags(file: string): { code: number; payload: Buffer }[] {
     const raw = fs.readFileSync(file);
@@ -83,6 +97,70 @@ function readShapeBounds(payload: Buffer): [number, number, number, number] {
 
     const bits = read(5);
     return [readSigned(bits), readSigned(bits), readSigned(bits), readSigned(bits)];
+}
+
+/** Reads scale and translation out of a PlaceObject2 MATRIX. */
+function readPlaceMatrix(payload: Buffer): { scale: number; x: number; y: number } {
+    const flags = payload[0];
+    assert.ok(flags & 0x04, 'PlaceObject2 should carry a matrix');
+    let pos = 3 + ((flags & 0x02) ? 2 : 0); // flags, depth, optional character id
+    let bit = 0;
+    const read = (count: number): number => {
+        let value = 0;
+        for (let i = 0; i < count; i += 1) {
+            value = (value << 1) | ((payload[pos] >> (7 - bit)) & 1);
+            bit += 1;
+            if (bit === 8) {
+                bit = 0;
+                pos += 1;
+            }
+        }
+        return value;
+    };
+    const readSigned = (count: number): number => {
+        const value = read(count);
+        return count && (value & (1 << (count - 1))) ? value - (1 << count) : value;
+    };
+
+    let scale = 1;
+    if (read(1)) {
+        const bits = read(5);
+        scale = readSigned(bits) / 65536; // 16.16 fixed point
+        readSigned(bits);
+    }
+    if (read(1)) {
+        const bits = read(5);
+        readSigned(bits);
+        readSigned(bits);
+    }
+    const translateBits = read(5);
+    return { scale, x: readSigned(translateBits), y: readSigned(translateBits) };
+}
+
+function testNeoPartPlacement(): void {
+    const tags = readSwfTags(path.resolve(__dirname, '../../client/content/localhost/p/cag/Animation_NPC.swf'));
+    for (const [part, expected] of Object.entries(NEO_PART_PLACEMENT)) {
+        const sprite = tags.find((tag) => tag.code === DEFINE_SPRITE_TAG
+            && tag.payload.length >= 4
+            && tag.payload.readUInt16LE(0) === expected.sprite);
+        assert.ok(sprite, `Animation_NPC.swf should define Neo's ${part} sprite ${expected.sprite}`);
+
+        // DefineSprite payload: spriteId, frameCount, then a nested tag stream.
+        const place = readTagStream(sprite!.payload, 4).find((tag) => tag.code === PLACE_OBJECT2_TAG);
+        assert.ok(place, `Neo's ${part} sprite should place its shape`);
+
+        const matrix = readPlaceMatrix(place!.payload);
+        assert.deepEqual(
+            { x: matrix.x, y: matrix.y },
+            { x: expected.x, y: expected.y },
+            `Neo's ${part} placement drifted`
+        );
+        // Scale is stored as 16.16 fixed point, so 6.3 does not round-trip exactly.
+        assert.ok(
+            Math.abs(matrix.scale - expected.scale) < 1e-4,
+            `Neo's ${part} scale drifted: ${matrix.scale} != ${expected.scale}`
+        );
+    }
 }
 
 function testNeoPartsUseBookFootprints(): void {
@@ -231,6 +309,7 @@ function main(): void {
     testLoginSwzIncludesHomeNeoEntType();
     testNeoScaleMatchesSourceEntTypes();
     testNeoPartsUseBookFootprints();
+    testNeoPartPlacement();
     console.log('npc_home_neo_regression passed');
 }
 
