@@ -40,11 +40,11 @@ const PLACE_OBJECT2_TAG = 26;
 const NEO_PART_PLACEMENT: Record<string, {
     sprite: number; scaleX: number; scaleY: number; rs0: number; rs1: number; x: number; y: number;
 }> = {
-    head: { sprite: 482, scaleX: 4.0428, scaleY: 2.7847, rs0: 0, rs1: 0, x: 998, y: -607 },
-    torso: { sprite: 56, scaleX: 8.2931, scaleY: 7.0368, rs0: 0, rs1: 0, x: -39, y: 295 },
-    backArm: { sprite: 328, scaleX: 4.4135, scaleY: 4.6498, rs0: 0, rs1: 0, x: -77, y: -150 },
-    frontArm: { sprite: 302, scaleX: 5.5901, scaleY: 5.5598, rs0: 0.3096, rs1: -0.3079, x: 68, y: -85 },
-    legs: { sprite: 200, scaleX: 7.4181, scaleY: 7.4454, rs0: 0, rs1: 0, x: 93, y: -20 }
+    head: { sprite: 482, scaleX: 4.3662, scaleY: 3.0075, rs0: 0, rs1: 0, x: 857, y: 162 },
+    torso: { sprite: 56, scaleX: 8.2931, scaleY: 7.0368, rs0: 0, rs1: 0, x: -39, y: 695 },
+    backArm: { sprite: 328, scaleX: 4.4135, scaleY: 4.6498, rs0: 0, rs1: 0, x: -77, y: 250 },
+    frontArm: { sprite: 302, scaleX: 5.5901, scaleY: 5.5598, rs0: 0.3096, rs1: -0.3079, x: 68, y: 315 },
+    legs: { sprite: 200, scaleX: 7.4181, scaleY: 6.8498, rs0: 0, rs1: 0, x: 93, y: 57 }
 };
 function readSwfTags(file: string): { code: number; payload: Buffer }[] {
     const raw = fs.readFileSync(file);
@@ -297,6 +297,7 @@ function testLoginSwzIncludesHomeNeoEntType(): void {
     assert.ok(entTypes, 'Login.swz should include EntTypes data');
     const neo = entTypes!.xml.match(/<EntType EntName="NPCHomeNeo"[\s\S]*?<\/EntType>/);
     assert.ok(neo, 'Login.swz should include the NPCHomeNeo EntType');
+    assert.equal(neo![0].includes('<DisplayName>Archivist Neo</DisplayName>'), true);
     assert.equal(neo![0].includes('<BaseAnim>ReadyLongCoat</BaseAnim>'), true);
     assert.equal(neo![0].includes('<CustomArt>Animation_NPC.swf/Rival</CustomArt>'), true);
     // Other NPCs on this rig sit at 0.6-0.7; Neo is deliberately the largest.
@@ -308,6 +309,7 @@ function testNeoScaleMatchesSourceEntTypes(): void {
     const neo = xml.match(/<EntType EntName="NPCHomeNeo"[\s\S]*?<\/EntType>/);
     assert.ok(neo, 'source EntTypes.xml should include NPCHomeNeo');
     assert.equal(neo![0].includes('<AnimScale>0.8</AnimScale>'), true, 'source EntTypes.xml must not drift from Login.swz');
+    assert.equal(neo![0].includes('<DisplayName>Archivist Neo</DisplayName>'), true, 'source EntTypes.xml must not drift from Login.swz');
 }
 
 function main(): void {

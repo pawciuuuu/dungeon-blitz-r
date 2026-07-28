@@ -5998,7 +5998,7 @@
 		</GfxType>
 	</EntType>
 	<EntType EntName="NPCHomeNeo" parent="Base">
-		<DisplayName>Neo</DisplayName>
+		<DisplayName>Archivist Neo</DisplayName>
 		<DevStatus>New House</DevStatus>
 		<Level>0</Level>
 		<ArmorClass>1</ArmorClass>
