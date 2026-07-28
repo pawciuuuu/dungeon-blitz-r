@@ -1,6 +1,7 @@
 import { strict as assert } from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as zlib from 'zlib';
 import { Entity } from '../core/Entity';
 import { GameData } from '../core/GameData';
 import { GlobalState } from '../core/GlobalState';
@@ -14,6 +15,58 @@ import { parseSwz } from '../scripts/swzPatchUtils';
 import { getCraftTownHomeInstanceId } from '../utils/HomeVisitGuard';
 
 const NEO_ID = 1761501;
+
+// Neo wears the Rival art set, whose face symbol a_Face2_Rival draws DefineShape
+// 481. He is otherwise a clone of the Dyer (the Book art set), so his head is the
+// Book one: a_Face2_Book draws DefineShape 1320, and both face sprites place their
+// shape with an identical matrix, so shape 481 simply carries 1320's geometry.
+const NEO_FACE_SHAPE = 481;
+const BOOK_FACE_SHAPE = 1320;
+const DEFINE_SHAPE_TAG = 2;
+
+function readSwfShapes(file: string): Map<number, Buffer> {
+    const raw = fs.readFileSync(file);
+    const body = raw.subarray(0, 3).toString('ascii') === 'CWS'
+        ? zlib.inflateSync(raw.subarray(8))
+        : raw.subarray(8);
+
+    // Frame header: a RECT (5 size bits + 4 fields) then frame rate and count.
+    let pos = Math.ceil((5 + 4 * (body[0] >> 3)) / 8) + 4;
+    const shapes = new Map<number, Buffer>();
+    while (pos + 2 <= body.length) {
+        const header = body.readUInt16LE(pos);
+        pos += 2;
+        const code = header >> 6;
+        let len = header & 0x3f;
+        if (len === 0x3f) {
+            len = body.readUInt32LE(pos);
+            pos += 4;
+        }
+        if (code === 0) {
+            break;
+        }
+        if (code === DEFINE_SHAPE_TAG && len >= 2) {
+            shapes.set(body.readUInt16LE(pos), body.subarray(pos, pos + len));
+        }
+        pos += len;
+    }
+    return shapes;
+}
+
+function testNeoUsesBookNpcHead(): void {
+    const shapes = readSwfShapes(path.resolve(__dirname, '../../client/content/localhost/p/cag/Animation_NPC.swf'));
+    const neoFace = shapes.get(NEO_FACE_SHAPE);
+    const bookFace = shapes.get(BOOK_FACE_SHAPE);
+
+    assert.ok(neoFace, `Animation_NPC.swf should define shape ${NEO_FACE_SHAPE}`);
+    assert.ok(bookFace, `Animation_NPC.swf should define shape ${BOOK_FACE_SHAPE}`);
+    // Skip the 2-byte character id; the geometry behind it must match.
+    assert.deepEqual(
+        neoFace!.subarray(2),
+        bookFace!.subarray(2),
+        'Neo face shape should carry the Book NPC head geometry'
+    );
+}
 
 function ensureDataLoaded(): void {
     const dataDir = path.resolve(__dirname, '../data');
@@ -138,6 +191,7 @@ function main(): void {
     testStaticServerAliasesVersionedManifestRequests();
     testLoginSwzIncludesHomeNeoEntType();
     testNeoScaleMatchesSourceEntTypes();
+    testNeoUsesBookNpcHead();
     console.log('npc_home_neo_regression passed');
 }
 

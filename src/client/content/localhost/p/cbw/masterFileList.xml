@@ -48,7 +48,7 @@
   <File  Version="caa" Stage="Game"  Size="27"	 Name="Animation_Larva.swf" />
   <File  Version="caa" Stage="Game"  Size="30"	 Name="Animation_Mimic.swf" />
   <File  Version="caa" Stage="Game"  Size="429"	 Name="Animation_Nephit.swf" />
-  <File  Version="cag" Stage="Game"  Size="823"	 Name="Animation_NPC.swf" />
+  <File  Version="cag" Stage="Game"  Size="815"	 Name="Animation_NPC.swf" />
   <File  Version="cbp" Stage="Game"  Size="285"	 Name="Animation_Pets.swf" />
   <File  Version="caa" Stage="Game"  Size="57"	 Name="Animation_Psychophage.swf" />
   <File  Version="caa" Stage="Game"  Size="89"	 Name="Animation_Puck.swf" />
