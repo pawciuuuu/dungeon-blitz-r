@@ -79,13 +79,12 @@ export class NpcHandler {
         let delayedFirstMissionTurnIn = false;
 
         if (npc) {
-            const rawNpcKey = String(
-                npc.characterName ??
-                npc.character_name ??
-                npc.entType ??
-                npc.name ??
-                ''
-            );
+            // Authored NPCs carry an empty character_name, so skip blanks instead of
+            // letting the first defined-but-empty field win and key every one of them
+            // onto the '...' fallback line.
+            const rawNpcKey = [npc.characterName, npc.character_name, npc.entType, npc.name]
+                .map((value) => String(value ?? '').trim())
+                .find((value) => value !== '') ?? '';
             missionNpcKey = NpcHandler.normalizeMissionNpcKey(rawNpcKey);
             dialogueNpcKey = NpcHandler.normalizeNpcKey(rawNpcKey);
 

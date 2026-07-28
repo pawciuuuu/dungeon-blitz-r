@@ -7,14 +7,20 @@ import { GameData } from '../core/GameData';
 import { GlobalState } from '../core/GlobalState';
 import { LevelConfig } from '../core/LevelConfig';
 import { StaticServer } from '../core/StaticServer';
+import { NpcDialogueLoader } from '../data/NpcDialogueLoader';
 import { NpcLoader } from '../data/NpcLoader';
 import { EntityHandler } from '../handlers/EntityHandler';
+import { NpcHandler } from '../handlers/NpcHandler';
 import { BitBuffer } from '../network/protocol/bitBuffer';
 import { BitReader } from '../network/protocol/bitReader';
 import { parseSwz } from '../scripts/swzPatchUtils';
 import { getCraftTownHomeInstanceId } from '../utils/HomeVisitGuard';
 
 const NEO_ID = 1761501;
+// Library floor of a_Level_Home: the room sits at (-260, -1880), so this puts Neo
+// next to the two tomes, which stand on the same floor line at world y -1058.
+const NEO_LIBRARY_X = 171;
+const NEO_LIBRARY_Y = -1073;
 
 // Neo's art is imported into the Rival slots, but it was drawn against the Book
 // (Dyer) NPC, which is also where his body proportions come from. Each Rival
@@ -203,6 +209,9 @@ function ensureDataLoaded(): void {
     if (NpcLoader.getRawNpcsForLevel('CraftTown').length === 0) {
         NpcLoader.load(dataDir);
     }
+    if (!NpcDialogueLoader.isLoaded()) {
+        NpcDialogueLoader.load(dataDir);
+    }
 }
 
 function createFakeClient(name: string): any {
@@ -258,8 +267,8 @@ function testCraftTownAuthoredNeoNpcSpawnsAfterPlayerSpawn(): void {
         id: NEO_ID,
         name: 'NPCHomeNeo',
         isPlayer: false,
-        x: 1020,
-        y: 1450,
+        x: NEO_LIBRARY_X,
+        y: NEO_LIBRARY_Y,
         team: 3
     });
     assert.equal(client.entities.get(NEO_ID)?.name, 'NPCHomeNeo');
@@ -274,6 +283,47 @@ function testCraftTownAuthoredNeoNpcSpawnsAfterPlayerSpawn(): void {
         1,
         'known Home NPC should not duplicate'
     );
+}
+
+/** Talking to an NPC is packet 0x7A: a single method_9 entity id. */
+function talkTo(client: any, npcId: number): string {
+    const bb = new BitBuffer();
+    bb.writeMethod9(npcId);
+    client.sentPackets.length = 0;
+    NpcHandler.handleTalkToNpc(client, bb.toBuffer());
+
+    const bubble = client.sentPackets.find((packet: any) => packet.id === 0x76);
+    assert.ok(bubble, `talking to ${npcId} should send a room-thought bubble`);
+    const br = new BitReader(bubble.payload);
+    br.readMethod4(); // entity id
+    return br.readMethod13();
+}
+
+function testHomeNpcsAnswerWhenTalkedTo(): void {
+    ensureDataLoaded();
+    GlobalState.levelEntities.clear();
+
+    const client = createFakeClient('NeoHomeTalker');
+    EntityHandler.sendCraftTownAuthoredNpcs(client);
+    // The tomes and the mailbox are authored in LevelsHome.swf, so the client spawns
+    // them and reports them with an entity name but no character_name.
+    for (const [id, name] of [[900001, 'NPCHomeMailbox'], [900002, 'NPCHomeXPBonus']] as const) {
+        client.entities.set(id, { id, name, isPlayer: false, characterName: '' });
+    }
+
+    for (const [id, npcKey] of [
+        [NEO_ID, 'npchomeneo'],
+        [900001, 'npchomemailbox'],
+        [900002, 'npchomexpbonus']
+    ] as const) {
+        const line = talkTo(client, id);
+        const expected = NpcDialogueLoader.getLinesForNpc('CraftTown', npcKey, client.character, 'en');
+        assert.ok(expected.length > 0, `CraftTown should define dialogue for ${npcKey}`);
+        assert.ok(
+            expected.includes(line),
+            `${npcKey} answered with "${line}" instead of one of its authored lines`
+        );
+    }
 }
 
 function testStaticServerAliasesVersionedManifestRequests(): void {
@@ -314,6 +364,7 @@ function testNeoScaleMatchesSourceEntTypes(): void {
 
 function main(): void {
     testCraftTownAuthoredNeoNpcSpawnsAfterPlayerSpawn();
+    testHomeNpcsAnswerWhenTalkedTo();
     testStaticServerAliasesVersionedManifestRequests();
     testLoginSwzIncludesHomeNeoEntType();
     testNeoScaleMatchesSourceEntTypes();
