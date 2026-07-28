@@ -2,6 +2,7 @@ import { strict as assert } from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as zlib from 'zlib';
+import { Achievements } from '../core/Achievements';
 import { Entity } from '../core/Entity';
 import { GameData } from '../core/GameData';
 import { GlobalState } from '../core/GlobalState';
@@ -19,8 +20,8 @@ import { getCraftTownHomeInstanceId } from '../utils/HomeVisitGuard';
 const NEO_ID = 1761501;
 // Library floor of a_Level_Home: the room sits at (-260, -1880), so this puts Neo
 // next to the two tomes, which stand on the same floor line at world y -1058.
-const NEO_LIBRARY_X = 171;
-const NEO_LIBRARY_Y = -1073;
+const NEO_LIBRARY_X = 301;
+const NEO_LIBRARY_Y = -1058;
 
 // Neo's art is imported into the Rival slots, but it was drawn against the Book
 // (Dyer) NPC, which is also where his body proportions come from. Each Rival
@@ -218,7 +219,9 @@ function createFakeClient(name: string): any {
     const sentPackets: { id: number; payload: Buffer }[] = [];
     return {
         token: 1,
-        character: { name, level: 50, class: 'mage' },
+        character: { name, level: 50, class: 'mage', gold: 0 },
+        characters: [] as any[],
+        scheduleCharacterSave() { /* persistence is not what this test covers */ },
         currentLevel: 'CraftTown',
         levelInstanceId: getCraftTownHomeInstanceId({ name } as never),
         currentRoomId: 0,
@@ -279,7 +282,7 @@ function testCraftTownAuthoredNeoNpcSpawnsAfterPlayerSpawn(): void {
         x: NEO_LIBRARY_X,
         y: NEO_LIBRARY_Y,
         team: 3,
-        characterName: 'Archivist Neo'
+        characterName: 'Special_XPBonus'
     });
     assert.equal(client.entities.get(NEO_ID)?.name, 'NPCHomeNeo');
     assert.equal(client.knownEntityIds.has(NEO_ID), true);
@@ -322,7 +325,6 @@ function testHomeNpcsAnswerWhenTalkedTo(): void {
     }
 
     for (const [id, npcKey] of [
-        [NEO_ID, 'archivistneo'],
         [900001, 'npchomemailbox'],
         [900002, 'npchomexpbonus']
     ] as const) {
@@ -334,6 +336,58 @@ function testHomeNpcsAnswerWhenTalkedTo(): void {
             `${npcKey} answered with "${line}" instead of one of its authored lines`
         );
     }
+}
+
+/**
+ * Neo hands out achievements: the ledger is server-side and his bubble is the whole
+ * UI, so talking to him has to report progress and pay out exactly once.
+ */
+function testNeoRunsTheAchievementLedger(): void {
+    ensureDataLoaded();
+    GlobalState.levelEntities.clear();
+
+    const client = createFakeClient('NeoLedgerTester');
+    client.character.gold = 0;
+    EntityHandler.sendCraftTownAuthoredNpcs(client);
+
+    const offer = talkTo(client, NEO_ID);
+    assert.ok(offer.includes('two hundred and fifty goblin heads'), `expected the goblin offer, got "${offer}"`);
+
+    for (let i = 0; i < 249; i += 1) {
+        Achievements.noteEnemyDefeat(client.character, ['GoblinDagger']);
+    }
+    assert.ok(talkTo(client, NEO_ID).includes('249 of 250'), 'progress should be read back from the ledger');
+    assert.equal(client.character.gold, 0, 'nothing is paid before the goal');
+
+    Achievements.noteEnemyDefeat(client.character, ['IntroGoblinClub']);
+    Achievements.notePlayerPosition(client.character, 'TutorialBoat', 60);
+    const claim = talkTo(client, NEO_ID);
+    assert.ok(claim.includes('I counted twice'), `expected the goblin payout, got "${claim}"`);
+    assert.ok(claim.includes('king of nothing'), 'the boat climb should pay out in the same breath');
+    assert.equal(client.character.gold, 30000, 'both rewards land on the character');
+    assert.equal(
+        client.sentPackets.filter((packet: any) => packet.id === 0x35).length,
+        2,
+        'each payout sends its own gold reward packet'
+    );
+
+    talkTo(client, NEO_ID);
+    assert.equal(client.character.gold, 30000, 'a claimed achievement never pays twice');
+
+    // Walking up to him is the real interaction: the Home level plays NPC chat
+    // client-side, so a talk packet never arrives.
+    const walker = createFakeClient('NeoWalker');
+    assert.equal(Achievements.shouldGreet(walker, 400, 1000), false, 'far away is not a greeting');
+    assert.equal(Achievements.shouldGreet(walker, 100, 1000), true, 'stepping into range greets once');
+    assert.equal(Achievements.shouldGreet(walker, 100, 1500), false, 'standing there does not repeat it');
+    assert.equal(Achievements.shouldGreet(walker, 300, 2000), false, 'walking away only re-arms');
+    assert.equal(Achievements.shouldGreet(walker, 100, 40000), true, 'coming back later greets again');
+
+    // Non-goblins and the wrong level must not move the ledger.
+    const other = createFakeClient('NeoLedgerControl');
+    assert.equal(Achievements.noteEnemyDefeat(other.character, ['BanditRogue2']), false);
+    assert.equal(Achievements.notePlayerPosition(other.character, 'CraftTown', -5000), false);
+    assert.equal(Achievements.notePlayerPosition(other.character, 'TutorialBoat', 600), false);
 }
 
 function testStaticServerAliasesVersionedManifestRequests(): void {
@@ -375,6 +429,7 @@ function testNeoScaleMatchesSourceEntTypes(): void {
 function main(): void {
     testCraftTownAuthoredNeoNpcSpawnsAfterPlayerSpawn();
     testHomeNpcsAnswerWhenTalkedTo();
+    testNeoRunsTheAchievementLedger();
     testStaticServerAliasesVersionedManifestRequests();
     testLoginSwzIncludesHomeNeoEntType();
     testNeoScaleMatchesSourceEntTypes();

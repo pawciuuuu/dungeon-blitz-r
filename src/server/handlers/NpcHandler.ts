@@ -1,3 +1,4 @@
+import { Achievements } from '../core/Achievements';
 import { Client } from '../core/Client';
 import { GlobalState } from '../core/GlobalState';
 import { GameData } from '../core/GameData';
@@ -29,6 +30,7 @@ export class NpcHandler {
     private static readonly RETURN_DIALOGUE_CHAR_MS = 1;
     private static readonly DEFAULT_TURN_IN_STARS = 3;
     private static readonly DEFAULT_DIALOGUE_LANGUAGE = 'en';
+    private static readonly ARCHIVIST_ENT_NAME = 'npchomeneo';
     private static readonly ATTACK_OF_OPPORTUNITY_MISSION_ID = 233;
     private static readonly ATTACK_OF_OPPORTUNITY_HARD_MISSION_ID = 254;
     private static readonly ATTACK_OF_OPPORTUNITY_SATELLITE_IDS = new Set([234, 235, 236]);
@@ -58,6 +60,23 @@ export class NpcHandler {
         }
         if (typeof client.scheduleCharacterSave === 'function') {
             client.scheduleCharacterSave(reason);
+        }
+    }
+
+    /**
+     * Reads the ledger out loud. The Home level never sends a talk packet -- it
+     * plays cue text locally (Game.method_668 branches on level a_Level_Home) --
+     * so walking up to Neo is what triggers this.
+     */
+    static speakAchievementLedger(client: Client, npcId: number): void {
+        if (!client.character) {
+            return;
+        }
+        const language = NpcHandler.getDialogueLanguage(client.character) === 'tr' ? 'tr' : 'en';
+        const ledger = Achievements.talk(client, language);
+        NpcHandler.sendNpcBubble(client, npcId, ledger.text);
+        if (ledger.didMutate && client.userId) {
+            NpcHandler.persistCharacter(client, 'achievement ledger');
         }
     }
 
@@ -225,6 +244,21 @@ export class NpcHandler {
                     didMutate = true;
                 }
             }
+        }
+
+        if (npc && NpcHandler.normalizeNpcKey(String(npc.name ?? '')) === NpcHandler.ARCHIVIST_ENT_NAME) {
+            // Neo keeps the achievement ledger; talking to him is how it is read
+            // out and how its rewards are paid. Keyed on the entity name because
+            // his cue name is borrowed from the library tome -- the client refuses
+            // to interact with an entity whose character_name is not a cue the
+            // level actually authored.
+            const language = NpcHandler.getDialogueLanguage(client.character) === 'tr' ? 'tr' : 'en';
+            const ledger = Achievements.talk(client, language);
+            NpcHandler.sendNpcBubble(client, npcId, ledger.text);
+            if ((ledger.didMutate || didMutate) && client.userId) {
+                NpcHandler.persistCharacter(client, 'achievement ledger');
+            }
+            return;
         }
 
         if (!dialogueId || !missionId) {

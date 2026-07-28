@@ -2,19 +2,19 @@
   {
     "id": 1761501,
     "name": "NPCHomeNeo",
-    "x": 171,
-    "y": -1073,
+    "x": 301,
+    "y": -1058,
     "v": 0,
     "team": 3,
     "untargetable": false,
     "render_depth_offset": -45,
-    "character_name": "Archivist Neo",
+    "character_name": "Special_XPBonus",
     "DramaAnim": "",
     "SleepAnim": "",
     "summonerId": 0,
     "power_id": 0,
     "entState": 1,
-    "facing_left": false,
+    "facing_left": true,
     "health_delta": 0,
     "buffs": []
   }

@@ -1,3 +1,4 @@
+import { Achievements } from '../core/Achievements';
 import { Client } from '../core/Client';
 import {
     buildDefaultDungeonScoreProfile,
@@ -1172,6 +1173,12 @@ export class MissionHandler {
         const defeatedNames = MissionHandler.getDefeatedEnemyNames(destroyedEntity);
         if (!defeatedNames.length) {
             return;
+        }
+
+        // Every kill any player is credited for routes through here, so this is
+        // the one place Neo's ledger has to listen to.
+        if (Achievements.noteEnemyDefeat(client.character, defeatedNames)) {
+            MissionHandler.saveCharacter(client, 'achievement kill progress');
         }
 
         const currentLevel =

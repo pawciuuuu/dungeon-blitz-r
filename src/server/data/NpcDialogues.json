@@ -3307,15 +3307,6 @@
       }
     },
     "CraftTown": {
-      "archivistneo": {
-        "displayName": "Archivist Neo",
-        "defaultLines": [
-          "Welcome to the archive. Mind the dust.",
-          "Every dungeon you clear ends up written down in here.",
-          "The tomes on those shelves are older than this keep.",
-          "Read one someday. They bite less than the goblins."
-        ]
-      },
       "npchomemailbox": {
         "displayName": "Mailbox",
         "defaultLines": [
