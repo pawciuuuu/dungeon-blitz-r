@@ -33,15 +33,15 @@ const DEFINE_SPRITE_TAG = 39;
 const PLACE_OBJECT2_TAG = 26;
 
 // Everything above the waist is nudged down 300 twips to close the gap where the
-// coat met the legs; the legs stay put. The head also scales to 5.355/7, with its
-// translate compensating so the neck stays on the same line and the head keeps
-// its horizontal centre. Tune these to move Neo, no geometry edits needed.
+// coat met the legs. The head scales to 5.355/7 and the left arm to 6.3/7, each
+// with a translate that pins it (head at the neck, arm at the shoulder) so only
+// its size changes. ~75 twips is one on-screen pixel at Neo's 0.65 AnimScale.
 const NEO_PART_PLACEMENT: Record<string, { sprite: number; scale: number; x: number; y: number }> = {
-    head: { sprite: 482, scale: 5.355, x: 507, y: 414 },
+    head: { sprite: 482, scale: 5.355, x: 507, y: 564 },
     torso: { sprite: 56, scale: 7, x: 0, y: 300 },
     rightArm: { sprite: 302, scale: 7, x: 0, y: 300 },
-    leftArm: { sprite: 328, scale: 7, x: 0, y: 300 },
-    legs: { sprite: 200, scale: 7, x: 0, y: 0 }
+    leftArm: { sprite: 328, scale: 6.3, x: 28, y: 117 },
+    legs: { sprite: 200, scale: 7, x: 100, y: 0 }
 };
 
 function readSwfTags(file: string): { code: number; payload: Buffer }[] {
