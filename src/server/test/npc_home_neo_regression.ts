@@ -16,15 +16,19 @@ import { getCraftTownHomeInstanceId } from '../utils/HomeVisitGuard';
 
 const NEO_ID = 1761501;
 
-// Neo wears the Rival art set, so his head is sprite 482 (a_Face2_Rival). The
-// stock Rival face is anchored ~178 twips lower than every shipped LongCoat set,
-// which buried his head in his collar. The face art itself (DefineShape 481) is
-// untouched; sprite 482's placement matrix carries the correction, lining his
-// neck up with the Book/Dyer head that Neo's body proportions come from.
-const NEO_FACE_SPRITE = 482;
-const NEO_HEAD_TRANSLATE = { x: 830, y: -1246 };
-const DEFINE_SPRITE_TAG = 39;
-const PLACE_OBJECT2_TAG = 26;
+// Neo's art is imported into the Rival slots, but it was drawn against the Book
+// (Dyer) NPC, which is also where his body proportions come from. Each Rival
+// shape therefore carries the matching Book part's footprint, and that footprint
+// is what anchors the part on the ReadyLongCoat rig -- the stock Rival anchors
+// sat ~178 twips low and buried his head in his collar.
+const NEO_PART_FOOTPRINTS: Record<string, { neo: number; book: number }> = {
+    Face2: { neo: 481, book: 1320 },
+    OvercoatBack: { neo: 327, book: 343 },
+    OvercoatFront: { neo: 301, book: 317 },
+    SlackerLegs: { neo: 199, book: 217 },
+    Torso07: { neo: 55, book: 71 }
+};
+const DEFINE_SHAPE_TAGS = new Set([2, 22, 32, 83]);
 
 function readSwfTags(file: string): { code: number; payload: Buffer }[] {
     const raw = fs.readFileSync(file);
@@ -56,12 +60,9 @@ function readTagStream(buf: Buffer, start: number): { code: number; payload: Buf
     return tags;
 }
 
-/** Reads the translation out of a PlaceObject2 MATRIX, in twips. */
-function readPlaceTranslate(payload: Buffer): { x: number; y: number } {
-    const flags = payload[0];
-    assert.ok(flags & 0x04, 'PlaceObject2 should carry a matrix');
-    let pos = 3 + ((flags & 0x02) ? 2 : 0); // flags, depth, optional character id
-
+/** Reads a DefineShape's bounds RECT (twips), which follows the 2-byte shape id. */
+function readShapeBounds(payload: Buffer): [number, number, number, number] {
+    let pos = 2;
     let bit = 0;
     const read = (count: number): number => {
         let value = 0;
@@ -80,31 +81,30 @@ function readPlaceTranslate(payload: Buffer): { x: number; y: number } {
         return count && (value & (1 << (count - 1))) ? value - (1 << count) : value;
     };
 
-    if (read(1)) {
-        read(read(5) * 2); // scale
-    }
-    if (read(1)) {
-        read(read(5) * 2); // rotate / skew
-    }
-    const translateBits = read(5);
-    return { x: readSigned(translateBits), y: readSigned(translateBits) };
+    const bits = read(5);
+    return [readSigned(bits), readSigned(bits), readSigned(bits), readSigned(bits)];
 }
 
-function testNeoHeadAnchoredToBookNeckLine(): void {
+function testNeoPartsUseBookFootprints(): void {
     const tags = readSwfTags(path.resolve(__dirname, '../../client/content/localhost/p/cag/Animation_NPC.swf'));
-    const face = tags.find((tag) => tag.code === DEFINE_SPRITE_TAG
-        && tag.payload.length >= 4
-        && tag.payload.readUInt16LE(0) === NEO_FACE_SPRITE);
-    assert.ok(face, `Animation_NPC.swf should define sprite ${NEO_FACE_SPRITE}`);
+    const bounds = new Map<number, [number, number, number, number]>();
+    for (const tag of tags) {
+        if (DEFINE_SHAPE_TAGS.has(tag.code) && tag.payload.length >= 2) {
+            bounds.set(tag.payload.readUInt16LE(0), readShapeBounds(tag.payload));
+        }
+    }
 
-    // DefineSprite payload: spriteId, frameCount, then a nested tag stream.
-    const place = readTagStream(face!.payload, 4).find((tag) => tag.code === PLACE_OBJECT2_TAG);
-    assert.ok(place, 'a_Face2_Rival should place its face shape');
-    assert.deepEqual(
-        readPlaceTranslate(place!.payload),
-        NEO_HEAD_TRANSLATE,
-        "Neo's head must stay anchored to the Book neck line"
-    );
+    for (const [part, { neo, book }] of Object.entries(NEO_PART_FOOTPRINTS)) {
+        const neoBounds = bounds.get(neo);
+        const bookBounds = bounds.get(book);
+        assert.ok(neoBounds, `Animation_NPC.swf should define Neo's ${part} shape ${neo}`);
+        assert.ok(bookBounds, `Animation_NPC.swf should define the Book ${part} shape ${book}`);
+        assert.deepEqual(
+            neoBounds,
+            bookBounds,
+            `Neo's ${part} must keep the Book footprint so it anchors on the LongCoat rig`
+        );
+    }
 }
 
 function ensureDataLoaded(): void {
@@ -230,7 +230,7 @@ function main(): void {
     testStaticServerAliasesVersionedManifestRequests();
     testLoginSwzIncludesHomeNeoEntType();
     testNeoScaleMatchesSourceEntTypes();
-    testNeoHeadAnchoredToBookNeckLine();
+    testNeoPartsUseBookFootprints();
     console.log('npc_home_neo_regression passed');
 }
 
