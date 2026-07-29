@@ -218,6 +218,8 @@ export class Client {
     public lastCombatStatsRefreshRequestAt: number = 0;
     public lastCombatStatsSyncedAt: number = 0;
     public pendingRespawnRequest: { usePotion: boolean; requestedAt: number } | null = null;
+    public pendingRespawnTimer: NodeJS.Timeout | null = null;
+    public respawnPotionCharged: boolean = false;
     public lastCombatActivityAt: number = 0;
     public lastCombatRegenTickAt: number = 0;
     public enemyDeathRegenArmed: boolean = false;
@@ -591,6 +593,11 @@ export class Client {
         this.lastCombatStatsRefreshRequestAt = 0;
         this.lastCombatStatsSyncedAt = 0;
         this.pendingRespawnRequest = null;
+        if (this.pendingRespawnTimer) {
+            clearTimeout(this.pendingRespawnTimer);
+            this.pendingRespawnTimer = null;
+        }
+        this.respawnPotionCharged = false;
         this.lastCombatActivityAt = 0;
         this.lastCombatRegenTickAt = 0;
         this.enemyDeathRegenArmed = false;

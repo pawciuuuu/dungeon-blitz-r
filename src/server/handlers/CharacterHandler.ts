@@ -1031,13 +1031,15 @@ export class CharacterHandler {
 
                      // Found a party member in the same dungeon — reuse their level scope
                      levelInstanceId = normalizeLevelInstanceId(other.levelInstanceId) || createDungeonInstanceId(token);
+                     // Only ever beside a standing anchor. Their live entity mid-jump is a
+                     // point in open air, and spawning onto it drops the joiner; when the
+                     // anchor has no grounded sample yet the level's own spawn marker wins.
                      const otherEntity = other.clientEntID > 0 ? other.entities?.get(other.clientEntID) : null;
-                     const otherX = Number(otherEntity?.x);
-                     const otherY = Number(otherEntity?.y);
-                     if (Number.isFinite(otherX) && Number.isFinite(otherY)) {
+                     const anchorGround = LevelHandler.resolveGroundedAnchorPosition(otherEntity);
+                     if (anchorGround) {
                          spawn = {
-                             x: Math.round(otherX + 100),
-                             y: Math.round(otherY),
+                             x: anchorGround.x + 100,
+                             y: anchorGround.y,
                              hasCoord: true
                          };
                      }

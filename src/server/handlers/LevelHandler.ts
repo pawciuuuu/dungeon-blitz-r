@@ -459,6 +459,41 @@ export class LevelHandler {
         return Math.round(numericValue);
     }
 
+    /**
+     * The position of a party member that another player may safely be dropped onto.
+     *
+     * Never the raw live entity: the server has no collision, so entity.x/y mid-jump or
+     * mid-fall is a point in open air. Placing a joiner there is what spawns them
+     * hovering and drops them. Only a position the anchor was last standing on counts,
+     * and when there is none the caller must fall back to the level's own spawn marker
+     * rather than guess.
+     */
+    static resolveGroundedAnchorPosition(entity: any): { x: number; y: number } | null {
+        if (!entity || typeof entity !== 'object') {
+            return null;
+        }
+
+        const groundedX = Number(entity.groundedX);
+        const groundedY = Number(entity.groundedY);
+        if (Number.isFinite(groundedX) && Number.isFinite(groundedY)) {
+            return { x: Math.round(groundedX), y: Math.round(groundedY) };
+        }
+
+        // No grounded sample yet -- the anchor has not sent a standing 0x07 since they
+        // arrived. Their current position is only usable if it is not airborne.
+        if (entity.airborne || entity.bJumping || entity.bDropping) {
+            return null;
+        }
+
+        const liveX = Number(entity.x);
+        const liveY = Number(entity.y);
+        if (!Number.isFinite(liveX) || !Number.isFinite(liveY)) {
+            return null;
+        }
+
+        return { x: Math.round(liveX), y: Math.round(liveY) };
+    }
+
     private static buildActiveTransferSyncAnchorCandidate(
         session: Client,
         targetLevel: string
@@ -476,9 +511,10 @@ export class LevelHandler {
         let y = 0;
         let hasCoord = false;
         const entity = session.entities.get(session.clientEntID);
-        if (entity && Number.isFinite(entity.x) && Number.isFinite(entity.y)) {
-            x = Math.round(Number(entity.x));
-            y = Math.round(Number(entity.y));
+        const grounded = LevelHandler.resolveGroundedAnchorPosition(entity);
+        if (grounded) {
+            x = grounded.x;
+            y = grounded.y;
             hasCoord = true;
         } else {
             const savedLevel = session.character.CurrentLevel;
@@ -6140,6 +6176,14 @@ export class LevelHandler {
         ent.bBackpedal = flags.bBackpedal;
         ent.velocityY = velocityY;
         ent.airborne = isAirborne;
+        // The last position the player was known to be standing on. entity.x/y alone is
+        // only a running sum of movement deltas and its `airborne` flag is whatever the
+        // most recent 0x07 carried, so anything that has to place a body on solid floor
+        // (party anchor spawns, dungeon return points) reads this instead.
+        if (!isAirborne && !flags.bJumping && !flags.bDropping) {
+            ent.groundedX = ent.x;
+            ent.groundedY = ent.y;
+        }
 
         // Neo's "King of the World" ledger entry: the only place the server sees
         // where a player actually climbed to.
@@ -6163,6 +6207,10 @@ export class LevelHandler {
             levelEntity.bBackpedal = flags.bBackpedal;
             levelEntity.velocityY = velocityY;
             levelEntity.airborne = isAirborne;
+            if (!isAirborne && !flags.bJumping && !flags.bDropping) {
+                levelEntity.groundedX = ent.x;
+                levelEntity.groundedY = ent.y;
+            }
         }
 
         if (isActiveSelfState) {
@@ -6197,15 +6245,22 @@ export class LevelHandler {
             ) {
                 // Airborne on arrival in a new level: the level itself still has to be
                 // recorded, or a logout mid-fall would send the player back to the level
-                // they came from. Pair it with the authored spawn where the level has one --
-                // otherwise keep the reported position, which the next grounded packet
-                // replaces anyway.
+                // they came from.
+                //
+                // The coordinates must not be the airborne ones. This used to fall back to
+                // ent.x/ent.y whenever the level had no authored spawn -- true for
+                // SwampRoadConnection and for any level missing from level_config.json --
+                // on the assumption that the next grounded packet would replace it. A
+                // player who disconnects before landing never sends that packet, so the
+                // mid-air point became their save, and the next login dropped them from it.
+                // Recording the level with no coordinates is the safe answer: getSpawn
+                // returns {0,0}, hasCoord stays false, and the client uses its own spawn
+                // marker for the level.
                 const spawn = LevelConfig.getSpawn(currentLevel);
-                const hasAuthoredSpawn = Number(spawn?.x ?? 0) !== 0 || Number(spawn?.y ?? 0) !== 0;
                 client.character.CurrentLevel = {
                     name: currentLevel,
-                    x: Math.round(Number(hasAuthoredSpawn ? spawn.x : ent.x) || 0),
-                    y: Math.round(Number(hasAuthoredSpawn ? spawn.y : ent.y) || 0)
+                    x: Math.round(Number(spawn?.x ?? 0) || 0),
+                    y: Math.round(Number(spawn?.y ?? 0) || 0)
                 };
             }
 
