@@ -3308,10 +3308,16 @@ export class LevelHandler {
     }
 
     private static normalizeGoblinRiverDialogue(text: string): string {
-        return String(text ?? '')
-            .replace(/<[^>]+>/g, '')
-            .replace(/^\^t/, '')
-            .trim();
+        // Strip until stable: a single pass turns "<a<b>c>" into "<ac>", leaving a
+        // tag behind that the caller would then treat as literal dialogue text.
+        let stripped = String(text ?? '');
+        let previous = '';
+        while (stripped !== previous) {
+            previous = stripped;
+            stripped = stripped.replace(/<[^<>]*>/g, '');
+        }
+
+        return stripped.replace(/^\^t/, '').trim();
     }
 
     static maybeStartGoblinRiverBossIntroLock(

@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import type { Server as HttpServer } from 'http';
@@ -45,6 +46,36 @@ function escapeHtml(value: string | null | undefined): string {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
+
+// Keyed on the socket address, not X-Forwarded-For: resolveRequesterAddress trusts
+// that header for logging, but a spoofable key would let one caller evade the limit
+// (and hand out other players' buckets) on the auth routes.
+// ponytail: in-process counters, per-instance. Move to a shared store if the game
+// server is ever run as more than one process behind a balancer.
+function ipRateLimit(windowMs: number, limit: number, message: string) {
+    return rateLimit({
+        windowMs,
+        limit,
+        standardHeaders: 'draft-7',
+        legacyHeaders: false,
+        validate: { xForwardedForHeader: false },
+        message
+    });
+}
+
+// Password reset, Discord OAuth, and account linking: slow enough to make guessing
+// state/code values and reset spam impractical, loose enough for a real retry.
+const authRateLimit = () => ipRateLimit(15 * 60 * 1000, 30, 'Too many attempts. Wait a few minutes and try again.');
+
+// Asset and status reads. A cold client load pulls dozens of SWF/XML files, and a
+// whole household can share one NAT address, so the ceiling is high on purpose --
+// it exists to bound a flood, not to shape normal play.
+const assetRateLimit = () => ipRateLimit(60 * 1000, 1000, 'Too many requests. Slow down and try again.');
+
+// The login page polls /api/auth/discord/pending once a second for up to two
+// minutes while it waits for the OAuth window, so this one cannot use the auth
+// budget -- a real login would exhaust it.
+const pollRateLimit = () => ipRateLimit(60 * 1000, 90, 'Too many requests. Slow down and try again.');
 
 export class StaticServer {
     private app: express.Application;
@@ -461,6 +492,18 @@ try {
             }
             next();
         });
+
+        // Registered ahead of every route below so each one inherits a limit.
+        this.app.use(assetRateLimit());
+        this.app.use('/api/auth/discord/pending', pollRateLimit());
+        this.app.use([
+            '/lostpw',
+            '/auth/discord',
+            '/callback',
+            '/discord/link',
+            '/api/discord/link',
+            '/api/discord-linked-roles'
+        ], authRateLimit());
 
         this.app.get('/', (_req, res) => {
             res.sendFile(path.join(this.contentDir, 'index.html'));
