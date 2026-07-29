@@ -444,11 +444,36 @@ export class CombatHandler {
         client.sendBitBuffer(0x80, bb);
     }
 
+    // A death almost never has stats synced within the last second, so the deferred
+    // path below is the normal path for every revive -- not an edge case. Waiting on
+    // the client's 0xFC without a deadline is what leaves a player permanently dead
+    // when that reply never lands (dropped under a deep packet queue, a client busy
+    // loading a level, or an unpatched client that stays quiet while dead).
+    private static readonly RESPAWN_COMBAT_STATS_TIMEOUT_MS = 2_500;
+
     private static deferRespawnResponseForCombatStats(client: Client, usePotion: boolean, nowMs: number): void {
         client.pendingRespawnRequest = { usePotion, requestedAt: nowMs };
         client.combatStatsDirty = true;
         client.allowDirtyCombatStatsRegen = false;
         client.lastCombatStatsRefreshRequestAt = nowMs;
+
+        if (client.pendingRespawnTimer) {
+            clearTimeout(client.pendingRespawnTimer);
+        }
+        client.pendingRespawnTimer = setTimeout(() => {
+            client.pendingRespawnTimer = null;
+            if (!client.pendingRespawnRequest) {
+                return;
+            }
+            // resolvePlayerMaxHp falls back to the character level's base HP, so an
+            // answer built from stale stats still revives the player at a sane pool.
+            console.warn(
+                `[Combat] Combat stats never arrived for respawn; reviving ${client.character?.name ?? 'unknown'} on the timeout path.`
+            );
+            CombatHandler.completePendingRespawnAfterCombatStats(client);
+        }, CombatHandler.RESPAWN_COMBAT_STATS_TIMEOUT_MS);
+        client.pendingRespawnTimer.unref?.();
+
         CharacterSync.requestCombatStatsRefresh(client);
     }
 
@@ -459,6 +484,10 @@ export class CombatHandler {
         }
 
         client.pendingRespawnRequest = null;
+        if (client.pendingRespawnTimer) {
+            clearTimeout(client.pendingRespawnTimer);
+            client.pendingRespawnTimer = null;
+        }
         CombatHandler.sendRespawnResponse(client, pending.usePotion);
     }
 
@@ -5753,6 +5782,11 @@ export class CombatHandler {
         const hadPendingRespawn = Boolean(client.pendingRespawnRequest);
         if (usePotion) {
             usePotion = CombatHandler.tryConsumeRespawnPotion(client);
+            // 0x77 and the 0x82 that follows it are two halves of one revive, and the
+            // gap between them is the combat-stats handshake -- unbounded, and routinely
+            // longer than the 1.5s dedup window inside tryConsumeRespawnPotion. Mark the
+            // charge so the broadcast half cannot bill a second potion for it.
+            client.respawnPotionCharged = client.respawnPotionCharged || usePotion;
         }
 
         if (!usePotion && !hadPendingRespawn) {
@@ -5774,9 +5808,10 @@ export class CombatHandler {
         const entId = EntityHandler.resolveEntityAlias(client, rawEntId);
         const clientHealAmount = Math.max(0, Math.round(br.readMethod24()));
         const usedPotion = br.readMethod15();
-        if (usedPotion) {
+        if (usedPotion && !client.respawnPotionCharged) {
             CombatHandler.tryConsumeRespawnPotion(client);
         }
+        client.respawnPotionCharged = false;
 
         const isSelfRespawn = entId === client.clientEntID;
         const levelScope = getClientLevelScope(client);
