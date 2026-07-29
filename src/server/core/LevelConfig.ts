@@ -117,12 +117,13 @@ export class LevelConfig {
         };
     }
 
-    private static isMissingAuthoredSpawn(levelName: string, x: number, y: number): boolean {
-        return (
-            (levelName === 'CemeteryHill' || levelName === 'CemeteryHillHard') &&
-            Math.round(Number(x)) === 0 &&
-            Math.round(Number(y)) === 0
-        );
+    // A 0,0 record is a placeholder, never a position a player stood on. It means either
+    // the level has an authored spawn that should have been used instead (the Cemetery
+    // Hill case this started as), or it has none and only the client knows where the
+    // level's spawn marker is. Either way the coordinates must not be replayed -- doing
+    // so drops the player at the world origin.
+    private static isMissingAuthoredSpawn(_levelName: string, x: number, y: number): boolean {
+        return Math.round(Number(x)) === 0 && Math.round(Number(y)) === 0;
     }
 
     private static hasDefaultSpawn(levelName: string): boolean {
@@ -801,6 +802,14 @@ export class LevelConfig {
                 y: Math.round(Number(previousRecord.y)),
                 hasCoord: true
             };
+        }
+
+        if (!this.hasDefaultSpawn(targetLevel)) {
+            // No authored spawn for this level (SwampRoadConnection, anything missing from
+            // level_config.json). getSpawn would hand back 0,0 and claiming that as a real
+            // coordinate spawns the player at the world origin; let the client place them
+            // on the level's own spawn marker instead.
+            return { x: 0, y: 0, hasCoord: false };
         }
 
         const spawn = this.getSpawn(targetLevel);
