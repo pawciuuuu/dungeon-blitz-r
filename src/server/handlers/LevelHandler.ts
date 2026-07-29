@@ -5,6 +5,7 @@ import {
     createKeepTutorialState,
     KeepTutorialState
 } from '../core/Client';
+import { Achievements } from '../core/Achievements';
 import { BitBuffer } from '../network/protocol/bitBuffer';
 import { BitReader } from '../network/protocol/bitReader';
 import { LevelConfig } from '../core/LevelConfig';
@@ -2851,6 +2852,31 @@ export class LevelHandler {
             client.characters.push(client.character);
         }
         client.scheduleCharacterSave(reason);
+    }
+
+
+    /**
+     * Home NPC chat is played client-side from the level's cue text and never
+     * reaches the server (Game.method_668 branches on a_Level_Home), so walking
+     * up to Neo is the interaction signal we do get.
+     */
+    private static greetArchivistNeo(client: Client, levelName: string, x: number, y: number): void {
+        if (levelName !== 'CraftTown') {
+            return;
+        }
+
+        const neo = NpcLoader.getNpcsForLevel('CraftTown').find((npc) => String(npc.name ?? '') === 'NPCHomeNeo');
+        if (!neo) {
+            return;
+        }
+
+        const distance = Math.hypot(x - Number(neo.x ?? 0), y - Number(neo.y ?? 0));
+        if (!Achievements.shouldGreet(client, distance)) {
+            return;
+        }
+
+        const { NpcHandler } = require('./NpcHandler') as typeof import('./NpcHandler');
+        NpcHandler.speakAchievementLedger(client, Math.max(0, Math.round(Number(neo.id ?? 0))));
     }
 
     private static getLevelMap(
@@ -6108,6 +6134,15 @@ export class LevelHandler {
         ent.bBackpedal = flags.bBackpedal;
         ent.velocityY = velocityY;
         ent.airborne = isAirborne;
+
+        // Neo's "King of the World" ledger entry: the only place the server sees
+        // where a player actually climbed to.
+        if (isSelf && client.character && Achievements.notePlayerPosition(client.character, currentLevel, ent.y)) {
+            LevelHandler.scheduleCurrentCharacterSnapshot(client, 'achievement boat climb');
+        }
+        if (isSelf && client.character) {
+            LevelHandler.greetArchivistNeo(client, currentLevel, Number(ent.x ?? 0), Number(ent.y ?? 0));
+        }
 
         if (levelEntity && levelEntity !== ent) {
             levelEntity.x = ent.x;

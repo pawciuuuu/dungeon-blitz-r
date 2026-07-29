@@ -3160,15 +3160,6 @@
       }
     },
     "CraftTown": {
-      "archivistneo": {
-        "displayName": "Arsivci Neo",
-        "defaultLines": [
-          "Arsive hos geldin. Toza dikkat et.",
-          "Temizledigin her zindan burada yaziya gecer.",
-          "Su raflardaki kitaplar bu satodan bile eski.",
-          "Bir gun birini oku. Goblinlerden daha az isirirlar."
-        ]
-      },
       "npchomemailbox": {
         "displayName": "Posta Kutusu",
         "defaultLines": [
