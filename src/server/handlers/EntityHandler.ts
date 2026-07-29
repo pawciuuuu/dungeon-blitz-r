@@ -16,7 +16,7 @@ import { areClientsInSameParty, getPartyIdForClient, isClientPartyLeader, shares
 import { areClientsInSameLevelScope, getClientLevelScope, getLevelScopeKey, getScopeLevelName } from '../core/LevelScope';
 import { getPartyRuntimeLevelForClient } from '../core/RuntimeLevel';
 import { clearOpenBossScene, getOpenBossScene, isRoomBossEntity, markRoomBossEntity } from '../core/RoomBossState';
-import { getBossIdentityKeys, looksLikeDungeonBoss } from '../core/BossCopyCensus';
+import { getBossIdentityKey, getBossIdentityKeys } from '../core/BossCopyCensus';
 import { TutorialDungeonAuthorityEntity, TutorialDungeonMechanics } from '../core/TutorialDungeonMechanics';
 import { MovementAuthority } from '../core/MovementAuthority';
 
@@ -2727,7 +2727,12 @@ export class EntityHandler {
         }
 
         const bossKeys = getBossIdentityKeys(levelName);
-        if (!looksLikeDungeonBoss(entity, bossKeys)) {
+        // Only a second cue for the *same* boss is a stale copy. A room that
+        // authors two bosses (Svagg and the griffon he summons, the bandit twins)
+        // sends a cue for each, and suppressing the second one left that boss
+        // unkillable and its dungeon unable to finish.
+        const bossIdentity = getBossIdentityKey(entity, bossKeys);
+        if (!bossIdentity) {
             return false;
         }
 
@@ -2743,7 +2748,7 @@ export class EntityHandler {
                 normalizedLocalId <= 0 ||
                 normalizedLocalId === entityId ||
                 localEntity === entity ||
-                !looksLikeDungeonBoss(localEntity, bossKeys)
+                getBossIdentityKey(localEntity, bossKeys) !== bossIdentity
             ) {
                 continue;
             }
