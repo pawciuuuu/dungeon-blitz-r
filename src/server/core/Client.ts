@@ -7,6 +7,7 @@ import type { DungeonRunStats } from './DungeonRunStats';
 import { clearStoredDungeonSnapshot } from './DungeonSnapshot';
 import { LevelConfig } from './LevelConfig';
 import { MovementAuthority, MovementAuthorityState } from './MovementAuthority';
+import { CastRateAuthority, CastRateState } from './CastRateAuthority';
 import { performance } from 'perf_hooks';
 import { getActiveMovementPacketKey, mergeActiveMovementPackets } from '../network/movementPacket';
 
@@ -202,6 +203,7 @@ export class Client {
     public mountTransferGraceUntil: number = 0;
     public roomTransitionGraceUntil: number = 0;
     public movementAuthority: MovementAuthorityState = MovementAuthority.createState();
+    public castRate: CastRateState = CastRateAuthority.createState();
     public startedRoomEvents: Set<string> = new Set();
     public knownEntityIds: Set<number> = new Set();
     public entityIdAliases: Map<number, number> = new Map();

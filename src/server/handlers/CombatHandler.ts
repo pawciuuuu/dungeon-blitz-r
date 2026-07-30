@@ -29,6 +29,7 @@ import { LevelConfig } from '../core/LevelConfig';
 import { getRoomBossAwareRoomId, isRoomBossEntity } from '../core/RoomBossState';
 import { RewardHandler } from './RewardHandler';
 import { MovementAuthority } from '../core/MovementAuthority';
+import { CastRateAuthority } from '../core/CastRateAuthority';
 import { TutorialDungeonMechanics } from '../core/TutorialDungeonMechanics';
 import { AdminRuntimeSettings } from '../core/AdminRuntimeSettings';
 
@@ -5136,6 +5137,16 @@ export class CombatHandler {
                 comboData: info.comboData
             });
         }
+        // Only the player's own casts are metered. A client also relays the hostiles it
+        // owns, and a room full of them is not the player casting fast. Charged before the
+        // mobility grace below, so a refused cast does not buy a blink's worth of movement.
+        if (
+            EntityHandler.isClientOwnPlayerEntity(client, levelScope, info.sourceId, sourceEntity) &&
+            !CastRateAuthority.chargeCast(client, info.powerId)
+        ) {
+            return;
+        }
+
         if (sourceSession === client) {
             MovementAuthority.noteMobilityCast(client, info.powerId);
         }
@@ -5213,6 +5224,15 @@ export class CombatHandler {
             return;
         }
         if (targetEntity && !targetEntity.isPlayer && Boolean(targetEntity.untargetable)) {
+            return;
+        }
+
+        // The damage number rides on this packet, so a refused cast has to take its hits
+        // with it or the rate limit costs the cheater nothing.
+        if (
+            EntityHandler.isClientOwnPlayerEntity(client, levelScope, sourceId, sourceEntity) &&
+            CastRateAuthority.isHitBlocked(client, info.powerId)
+        ) {
             return;
         }
 
