@@ -6,6 +6,7 @@ import { BitBuffer } from '../network/protocol/bitBuffer';
 import { JsonAdapter } from '../database/JsonAdapter';
 import { WorldEnter } from '../utils/WorldEnter';
 import { isVisitingAnotherPlayersCraftTown } from '../utils/HomeVisitGuard';
+import { SpeedupPricing } from '../core/SpeedupPricing';
 import buildingTypes from '../data/BuildingTypes.json';
 
 const db = new JsonAdapter();
@@ -230,13 +231,19 @@ export class BuildingHandler {
             return;
         }
 
-        if (idolCost > 0) {
+        const authoritativeCost = SpeedupPricing.reconcile(upgrade.ReadyTime, idolCost);
+        if (authoritativeCost > 0) {
             const idols = Number(client.character.mammothIdols ?? 0);
-            if (idols < idolCost) {
+            if (idols < authoritativeCost) {
+                console.warn(
+                    `[Building] Refused a Speed Up for ${client.character.name}: ` +
+                    `has ${idols} idols, needs ${authoritativeCost} (client claimed ${idolCost}).`
+                );
+                SpeedupPricing.refreshScreens(client);
                 return;
             }
 
-            client.character.mammothIdols = idols - idolCost;
+            client.character.mammothIdols = idols - authoritativeCost;
         }
 
         // Apply Upgrade Immediately
@@ -253,7 +260,7 @@ export class BuildingHandler {
         
         await BuildingHandler.saveCharacter(client);
 
-        BuildingHandler.sendPremiumPurchase(client, 'BuildingSpeedup', idolCost);
+        BuildingHandler.sendPremiumPurchase(client, 'BuildingSpeedup', authoritativeCost);
 
         // Send Completion Packet (0xD8)
         BuildingHandler.sendBuildingComplete(client, buildingId, newRank);

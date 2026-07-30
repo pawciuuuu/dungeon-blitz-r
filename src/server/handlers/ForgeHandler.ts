@@ -12,6 +12,7 @@ import { BuildingID } from '../core/Enums';
 import { PetHandler } from './PetHandler';
 import { sendConsumableUpdate } from '../utils/ConsumableState';
 import { normalizeMaterialEntries } from '../utils/MaterialInventory';
+import { SpeedupPricing } from '../core/SpeedupPricing';
 import { isVisitingAnotherPlayersCraftTown } from '../utils/HomeVisitGuard';
 
 const db = new JsonAdapter();
@@ -45,15 +46,8 @@ export class ForgeHandler {
     private static readonly RESPEC_STONE_DURATION_SECONDS = 180;
     private static readonly EXTENDED_RESPEC_STONE_DURATION_SECONDS = 86400;
     private static readonly CHARM_REMOVER_DURATION_SECONDS = 43200;
-    private static readonly SPEEDUP_SECONDS_PER_IDOL = 1200;
-    private static readonly FREE_SPEEDUP_THRESHOLD_SECONDS = 180;
-    // The client counts the forge down on its own clock and turns the button Free below
-    // the threshold. The two clocks drift -- over a 24h Respec Stone by well more than the
-    // 10s this used to allow -- and the server then silently refused a Free request the
-    // player was looking at. The exposure from honouring a drifted client is bounded by
-    // this window: 300s of skipped forge time is a quarter of the 1200s an idol buys, so
-    // the worst case is still less than a single idol.
-    private static readonly FREE_SPEEDUP_CLOCK_GRACE_SECONDS = 120;
+    private static readonly FREE_SPEEDUP_THRESHOLD_SECONDS = SpeedupPricing.FREE_THRESHOLD_SECONDS;
+    private static readonly FREE_SPEEDUP_CLOCK_GRACE_SECONDS = SpeedupPricing.CLOCK_GRACE_SECONDS;
     private static readonly FREE_SPEEDUP_REASON_TUTORIAL_CHARM: FreeSpeedupReason = 'tutorial_charm';
     private static readonly FORGE_XP_CAP = 159_948;
     private static readonly DEFAULT_FORGE_XP_GAIN = 4000;
@@ -493,50 +487,6 @@ export class ForgeHandler {
             && remainingSeconds <= ForgeHandler.FREE_SPEEDUP_THRESHOLD_SECONDS + ForgeHandler.FREE_SPEEDUP_CLOCK_GRACE_SECONDS;
     }
 
-    private static getAuthoritativeSpeedupCost(forgeState: ForgeState): number {
-        const readyTime = Number(forgeState.ReadyTime ?? 0);
-        if (readyTime <= 0) {
-            return 0;
-        }
-
-        const remainingSeconds = readyTime - ForgeHandler.getNowSeconds();
-        // Same grace canUseFreeSpeedupWindow allows. Without it the two disagreed about
-        // where Free begins, and a Respec Stone at the boundary was priced at an idol the
-        // client never showed.
-        if (
-            remainingSeconds <=
-            ForgeHandler.FREE_SPEEDUP_THRESHOLD_SECONDS + ForgeHandler.FREE_SPEEDUP_CLOCK_GRACE_SECONDS
-        ) {
-            return 0;
-        }
-
-        return Math.ceil(remainingSeconds / ForgeHandler.SPEEDUP_SECONDS_PER_IDOL);
-    }
-
-    /**
-     * The price the player was actually shown, when we can agree it is honest.
-     *
-     * The server prices every Speed Up from its own timer. It used to trust the packet for
-     * everything except the Respec Stone, which meant a client that simply wrote a smaller
-     * number into the request bought a 24-hour forge for one idol -- no memory editing
-     * needed beyond the value already on screen.
-     *
-     * The two clocks still disagree by a little (mServerGameTime is seeded once per world
-     * enter and free-runs), and at a 20-minute boundary that put them one idol apart, so a
-     * player holding exactly the displayed price was refused. Honour the displayed price
-     * only when it is within one idol of ours: drift is absorbed, and a lie costs the
-     * cheater's target nothing more than a single idol.
-     */
-    private static reconcileSpeedupCost(forgeState: ForgeState, declaredCost: number): number {
-        const authoritativeCost = ForgeHandler.getAuthoritativeSpeedupCost(forgeState);
-        const declared = Math.max(0, Math.round(Number(declaredCost) || 0));
-        if (authoritativeCost <= 0 || declared <= 0) {
-            return authoritativeCost;
-        }
-
-        return Math.abs(authoritativeCost - declared) <= 1 ? declared : authoritativeCost;
-    }
-
     private static completeActiveForgeNow(forgeState: ForgeState): void {
         forgeState.ReadyTime = 0;
         forgeState.forge_roll_a = ForgeHandler.randomRollSeed();
@@ -667,20 +617,10 @@ export class ForgeHandler {
         client.sendBitBuffer(0xB5, bb);
     }
 
-    /**
-     * Un-stick the Forge screen after a request the server could not honour.
-     *
-     * This is the other half of "silently fails". The client disables the Speed Up button
-     * the instant it is clicked and re-enables it in exactly one place -- OnRefreshScreen
-     * -- so any request the server drops leaves the button dead for the rest of the
-     * session. The result packet cannot stand in for this: it means "your charm is ready"
-     * and hides the whole screen.
-     *
-     * 0xE3 carries no payload; the client handler ignores its argument and just refreshes
-     * the building screens, which re-enables the button and redraws the current price.
-     */
+    // SpeedupPricing.refreshScreens under a forge-shaped name. The result packet cannot
+    // stand in for it: that one means "your charm is ready" and hides the whole screen.
     private static sendForgeScreenRefresh(client: Client): void {
-        client.send(0xE3, Buffer.alloc(0));
+        SpeedupPricing.refreshScreens(client);
     }
 
     private static sendForgeResultPacket(client: Client, forgeState: ForgeState): void {
@@ -850,7 +790,7 @@ export class ForgeHandler {
 
         const primary = Number(forgeState.primary ?? 0);
         const isRespecStone = primary === CharmID.RespecStone;
-        const authoritativeCost = ForgeHandler.reconcileSpeedupCost(forgeState, idolCost);
+        const authoritativeCost = SpeedupPricing.reconcile(forgeState.ReadyTime, idolCost, ForgeHandler.getNowSeconds());
 
         if (authoritativeCost <= 0) {
             const freeSpeedupReason = ForgeHandler.getSpecialFreeSpeedupReason(client, forgeState);
