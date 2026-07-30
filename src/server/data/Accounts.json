@@ -68,5 +68,18 @@
   {
     "email": "urmom@gmail.com",
     "user_id": 13
+  },
+  {
+    "email": "test@theminesa.studio",
+    "user_id": 14,
+    "passwordKdf": "scrypt",
+    "passwordSalt": "UrKOwZr+4BpcyJVJsAAEnA==",
+    "passwordHash": "ZITd8ryL6X5M3Pexf5oS2CSlBhAicv9wr4JoKUHUG3Pv8sHmx83bi5bYYd/ndPCVUhc4G9NwxoCjHxHsIDD+ww==",
+    "passwordParams": {
+      "N": 16384,
+      "r": 8,
+      "p": 1,
+      "keylen": 64
+    }
   }
 ]
