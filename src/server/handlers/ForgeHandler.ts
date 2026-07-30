@@ -47,7 +47,13 @@ export class ForgeHandler {
     private static readonly CHARM_REMOVER_DURATION_SECONDS = 43200;
     private static readonly SPEEDUP_SECONDS_PER_IDOL = 1200;
     private static readonly FREE_SPEEDUP_THRESHOLD_SECONDS = 180;
-    private static readonly FREE_SPEEDUP_CLOCK_GRACE_SECONDS = 10;
+    // The client counts the forge down on its own clock and turns the button Free below
+    // the threshold. The two clocks drift -- over a 24h Respec Stone by well more than the
+    // 10s this used to allow -- and the server then silently refused a Free request the
+    // player was looking at. The exposure from honouring a drifted client is bounded by
+    // this window: 300s of skipped forge time is a quarter of the 1200s an idol buys, so
+    // the worst case is still less than a single idol.
+    private static readonly FREE_SPEEDUP_CLOCK_GRACE_SECONDS = 120;
     private static readonly FREE_SPEEDUP_REASON_TUTORIAL_CHARM: FreeSpeedupReason = 'tutorial_charm';
     private static readonly FORGE_XP_CAP = 159_948;
     private static readonly DEFAULT_FORGE_XP_GAIN = 4000;
@@ -494,11 +500,38 @@ export class ForgeHandler {
         }
 
         const remainingSeconds = readyTime - ForgeHandler.getNowSeconds();
-        if (remainingSeconds <= ForgeHandler.FREE_SPEEDUP_THRESHOLD_SECONDS) {
+        // Same grace canUseFreeSpeedupWindow allows. Without it the two disagreed about
+        // where Free begins, and a Respec Stone at the boundary was priced at an idol the
+        // client never showed.
+        if (
+            remainingSeconds <=
+            ForgeHandler.FREE_SPEEDUP_THRESHOLD_SECONDS + ForgeHandler.FREE_SPEEDUP_CLOCK_GRACE_SECONDS
+        ) {
             return 0;
         }
 
         return Math.ceil(remainingSeconds / ForgeHandler.SPEEDUP_SECONDS_PER_IDOL);
+    }
+
+    /**
+     * The price the player was actually shown, when we can agree it is honest.
+     *
+     * Only the Respec Stone is priced server-side; every other charm bills the
+     * client-declared cost verbatim. The server recomputing from its own clock means that
+     * at a 20-minute boundary a few seconds of drift put the two one idol apart, and a
+     * player holding exactly the displayed price had the request dropped with no packet
+     * back and no explanation. Honour the displayed price when it is within one idol of
+     * ours -- still stricter than every other charm gets, and a drifting client can save
+     * at most one idol.
+     */
+    private static reconcileRespecStoneSpeedupCost(forgeState: ForgeState, declaredCost: number): number {
+        const authoritativeCost = ForgeHandler.getAuthoritativeSpeedupCost(forgeState);
+        const declared = Math.max(0, Math.round(Number(declaredCost) || 0));
+        if (authoritativeCost <= 0 || declared <= 0) {
+            return authoritativeCost;
+        }
+
+        return Math.abs(authoritativeCost - declared) <= 1 ? declared : authoritativeCost;
     }
 
     private static completeActiveForgeNow(forgeState: ForgeState): void {
@@ -631,6 +664,22 @@ export class ForgeHandler {
         client.sendBitBuffer(0xB5, bb);
     }
 
+    /**
+     * Un-stick the Forge screen after a request the server could not honour.
+     *
+     * This is the other half of "silently fails". The client disables the Speed Up button
+     * the instant it is clicked and re-enables it in exactly one place -- OnRefreshScreen
+     * -- so any request the server drops leaves the button dead for the rest of the
+     * session. The result packet cannot stand in for this: it means "your charm is ready"
+     * and hides the whole screen.
+     *
+     * 0xE3 carries no payload; the client handler ignores its argument and just refreshes
+     * the building screens, which re-enables the button and redraws the current price.
+     */
+    private static sendForgeScreenRefresh(client: Client): void {
+        client.send(0xE3, Buffer.alloc(0));
+    }
+
     private static sendForgeResultPacket(client: Client, forgeState: ForgeState): void {
         const bb = new BitBuffer(false);
         bb.writeMethod6(Math.max(0, Number(forgeState.primary ?? 0)), 7);
@@ -755,12 +804,27 @@ export class ForgeHandler {
     }
 
     static async handleForgeSpeedUpPacket(client: Client, data: Buffer): Promise<void> {
-        if (!client.character || ForgeHandler.rejectsVisitedHomeMutation(client)) {
+        // Deliberately not gated on rejectsVisitedHomeMutation. An active forge lives on
+        // the visitor's own character record, not on the home they are standing in, so
+        // finishing it changes nothing about the host. The guard blocked the request
+        // anyway, which is why a paid Speed Up in someone else's Home took no idols,
+        // returned no result packet, and left the forge running.
+        if (!client.character) {
             return;
         }
 
-        const br = new BitReader(data);
-        const idolCost = br.readMethod9();
+        // A short payload used to throw out of the handler and get swallowed by the
+        // router's catch, which looks exactly like the silent failure this method is
+        // being fixed for. Name it instead.
+        let idolCost = 0;
+        try {
+            idolCost = new BitReader(data).readMethod9();
+        } catch {
+            console.warn('[Forge] Ignoring malformed Speed Up packet with no idol cost.');
+            ForgeHandler.sendForgeScreenRefresh(client);
+            return;
+        }
+
         const forgeState = ForgeHandler.ensureForgeState(client.character);
         const didForceRespecDuration = ForgeHandler.enforceActiveRespecStoneDuration(client, forgeState);
         const didForceCharmRemoverDuration = ForgeHandler.enforceActiveCharmRemoverDuration(forgeState);
@@ -769,6 +833,7 @@ export class ForgeHandler {
         }
 
         if (Number(forgeState.primary ?? 0) <= 0) {
+            ForgeHandler.sendForgeScreenRefresh(client);
             return;
         }
 
@@ -783,12 +848,17 @@ export class ForgeHandler {
         const primary = Number(forgeState.primary ?? 0);
         const isRespecStone = primary === CharmID.RespecStone;
         const authoritativeCost = isRespecStone
-            ? ForgeHandler.getAuthoritativeSpeedupCost(forgeState)
+            ? ForgeHandler.reconcileRespecStoneSpeedupCost(forgeState, idolCost)
             : idolCost;
 
         if (authoritativeCost <= 0) {
             const freeSpeedupReason = ForgeHandler.getSpecialFreeSpeedupReason(client, forgeState);
             if (!isRespecStone && !freeSpeedupReason && !ForgeHandler.canUseFreeSpeedupWindow(forgeState)) {
+                console.warn(
+                    `[Forge] Refused a Free Speed Up for ${client.character.name}: ` +
+                    `${Math.max(0, Number(forgeState.ReadyTime ?? 0) - Math.floor(Date.now() / 1000))}s left.`
+                );
+                ForgeHandler.sendForgeScreenRefresh(client);
                 return;
             }
 
@@ -805,6 +875,11 @@ export class ForgeHandler {
         }
 
         if (Number(client.character.mammothIdols ?? 0) < authoritativeCost) {
+            console.warn(
+                `[Forge] Refused a paid Speed Up for ${client.character.name}: ` +
+                `has ${Number(client.character.mammothIdols ?? 0)} idols, needs ${authoritativeCost}.`
+            );
+            ForgeHandler.sendForgeScreenRefresh(client);
             return;
         }
 
@@ -820,7 +895,10 @@ export class ForgeHandler {
     }
 
     static async handleCollectForgeCharm(client: Client, data: Buffer): Promise<void> {
-        if (!client.character || ForgeHandler.rejectsVisitedHomeMutation(client)) {
+        // Ungated for the same reason as Speed Up, and it has to move with it: a player
+        // who pays to finish a charm while visiting must be able to take the charm, or
+        // the idols buy them nothing until they walk home.
+        if (!client.character) {
             return;
         }
 
