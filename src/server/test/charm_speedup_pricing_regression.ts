@@ -232,6 +232,24 @@ async function testRespecStoneRejectsAnUnderpricedClaim(): Promise<void> {
     );
 }
 
+// Every charm is priced from the server's timer, not just the Respec Stone. A client whose
+// clock runs fast -- a Cheat Engine speedhack drives mServerGameTime, which is what the
+// Speed Up button prices from -- declares a price far under ours and used to be billed it.
+async function testOrdinaryCharmRejectsAnUnderpricedClaim(): Promise<void> {
+    const character = createCharacter();
+    (character as any).magicForge.primary = CharmID.Trog02;
+    (character as any).magicForge.ReadyTime = nowSeconds() + (10 * SECONDS_PER_IDOL);
+    character.mammothIdols = 50;
+    const client = createClient(character);
+
+    await withCapturedSaves(async () => {
+        await ForgeHandler.handleForgeSpeedUpPacket(client, speedUpPacket(1));
+    });
+
+    assert.ok(completed(character), 'the forge still completes -- the player can afford the real price');
+    assert.equal(Number(character.mammothIdols ?? 0), 40, 'a 10-idol Speed Up must not go through for 1');
+}
+
 // A truncated packet must be named, not thrown into the router's catch where it looks
 // exactly like the silent failure being fixed.
 async function testMalformedPacketIsIgnoredCleanly(): Promise<void> {
@@ -252,6 +270,7 @@ async function main(): Promise<void> {
     await testFreeSpeedUpIsStillRefusedFarFromTheWindow();
     await testRespecStoneHonoursTheDisplayedPrice();
     await testRespecStoneRejectsAnUnderpricedClaim();
+    await testOrdinaryCharmRejectsAnUnderpricedClaim();
     await testMalformedPacketIsIgnoredCleanly();
     await testEveryRefusalRefreshesTheForgeScreen();
     console.log('charm_speedup_pricing_regression: ok');

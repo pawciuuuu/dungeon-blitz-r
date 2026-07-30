@@ -516,15 +516,18 @@ export class ForgeHandler {
     /**
      * The price the player was actually shown, when we can agree it is honest.
      *
-     * Only the Respec Stone is priced server-side; every other charm bills the
-     * client-declared cost verbatim. The server recomputing from its own clock means that
-     * at a 20-minute boundary a few seconds of drift put the two one idol apart, and a
-     * player holding exactly the displayed price had the request dropped with no packet
-     * back and no explanation. Honour the displayed price when it is within one idol of
-     * ours -- still stricter than every other charm gets, and a drifting client can save
-     * at most one idol.
+     * The server prices every Speed Up from its own timer. It used to trust the packet for
+     * everything except the Respec Stone, which meant a client that simply wrote a smaller
+     * number into the request bought a 24-hour forge for one idol -- no memory editing
+     * needed beyond the value already on screen.
+     *
+     * The two clocks still disagree by a little (mServerGameTime is seeded once per world
+     * enter and free-runs), and at a 20-minute boundary that put them one idol apart, so a
+     * player holding exactly the displayed price was refused. Honour the displayed price
+     * only when it is within one idol of ours: drift is absorbed, and a lie costs the
+     * cheater's target nothing more than a single idol.
      */
-    private static reconcileRespecStoneSpeedupCost(forgeState: ForgeState, declaredCost: number): number {
+    private static reconcileSpeedupCost(forgeState: ForgeState, declaredCost: number): number {
         const authoritativeCost = ForgeHandler.getAuthoritativeSpeedupCost(forgeState);
         const declared = Math.max(0, Math.round(Number(declaredCost) || 0));
         if (authoritativeCost <= 0 || declared <= 0) {
@@ -847,9 +850,7 @@ export class ForgeHandler {
 
         const primary = Number(forgeState.primary ?? 0);
         const isRespecStone = primary === CharmID.RespecStone;
-        const authoritativeCost = isRespecStone
-            ? ForgeHandler.reconcileRespecStoneSpeedupCost(forgeState, idolCost)
-            : idolCost;
+        const authoritativeCost = ForgeHandler.reconcileSpeedupCost(forgeState, idolCost);
 
         if (authoritativeCost <= 0) {
             const freeSpeedupReason = ForgeHandler.getSpecialFreeSpeedupReason(client, forgeState);
