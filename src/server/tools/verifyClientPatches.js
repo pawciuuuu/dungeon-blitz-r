@@ -80,6 +80,25 @@ async function main() {
 
     console.log(`[verify-patches] Checking ${names.length} client patches (concurrency ${concurrency})...`);
     const results = await runAll(names);
+
+    // 22 patches already failed when this gate was introduced -- some are deliberate reverts
+    // (destroy-entity-without-brain, matching the `revert-destroy-brainless` client revision),
+    // others are genuinely dropped. Failing the build on those would block every build before
+    // anyone could triage them, so the gate only reacts to changes against that baseline.
+    const baseline = new Set(loadBaseline());
+
+    // Under concurrency JPEXS' decompiler worker can time out (it drops a com.jpexs stack trace and
+    // a truncated .as export), which makes a patch that is actually present verify as missing.
+    // Re-check anything we are about to call lost one at a time before believing it: a starved
+    // decompiler passes on the second look, a real loss still fails.
+    const suspects = results.filter((result) => !result.ok && !result.skipped && !baseline.has(result.name));
+    if (suspects.length > 0) {
+        console.warn(`[verify-patches] ${suspects.length} patch(es) failed; re-checking them serially...`);
+        for (const suspect of suspects) {
+            results[results.indexOf(suspect)] = await runVerify(suspect.name);
+        }
+    }
+
     const failures = results.filter((result) => !result.ok && !result.skipped);
     const skipped = results.filter((result) => result.skipped);
 
@@ -90,11 +109,6 @@ async function main() {
         );
     }
 
-    // 22 patches already failed when this gate was introduced -- some are deliberate reverts
-    // (destroy-entity-without-brain, matching the `revert-destroy-brainless` client revision),
-    // others are genuinely dropped. Failing the build on those would block every build before
-    // anyone could triage them, so the gate only reacts to changes against that baseline.
-    const baseline = new Set(loadBaseline());
     const regressions = failures.filter((result) => !baseline.has(result.name));
     const recovered = results.filter((result) => result.ok && baseline.has(result.name));
 
