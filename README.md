@@ -26,6 +26,30 @@ Current priorities:
 * Gameplay balancing
 * Performance improvements
 
+## Playtest account
+
+For local testing there is a seeder that creates `test@theminesa.studio` with six
+characters — one fully-completed and one brand new for each of the three classes:
+
+```bash
+cd src/server && npm run seed:test-account
+```
+
+| Character | Class | State |
+| --- | --- | --- |
+| `MaxMage` / `MaxPaladin` / `MaxRogue` | Mage / Paladin / Rogue | Level 50, all 293 missions claimed, all 39 class abilities at rank 10, maxed talents and buildings, every mount, pet, charm, dye and material |
+| `NewMage` / `NewPaladin` / `NewRogue` | Mage / Paladin / Rogue | Level 1, zero of everything |
+
+The password defaults to `testtest`; override it with `TEST_ACCOUNT_PASSWORD`. Re-running
+the seeder is safe — it reuses the account and rewrites the six characters.
+
+The seeder **refuses to run when `MULTIPLAYER_MODE` is set**. It writes a known password
+and a character holding every unlock in the game, which is local-play-only by nature.
+
+It writes to `src/server/data/Accounts.json`, which is tracked by git. Leave that change
+out of your commits: the matching save file lives in the untracked `saves/` directory, so
+a committed account row would be an empty account plus a published password hash.
+
 ## Documentation
 
 Project documentation can be found in the Wiki.
