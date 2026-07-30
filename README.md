@@ -26,6 +26,55 @@ Current priorities:
 * Gameplay balancing
 * Performance improvements
 
+## Playing single player
+
+Everything runs on your own machine — the server, the game files and your saves. No
+account on anyone else's server, no internet connection needed once it is set up.
+
+**You need two things first:**
+
+1. **[Node.js](https://nodejs.org/) (LTS)** — the game server runs on it.
+2. **A Flash-capable browser.** Dungeon Blitz is a Flash game and modern browsers dropped
+   Flash in 2020. The launchers expect
+   [FlashBrowser](https://github.com/radubirsan/FlashBrowser/releases/tag/v0.8); any
+   standalone Flash player pointed at `http://localhost:8000/` also works.
+
+**Then just run the launcher for your system:**
+
+| System | File |
+| --- | --- |
+| macOS | `dev-mac.command` (double-click, or `./dev-mac.command` in Terminal) |
+| Windows | `dev-windows.bat` (double-click) |
+
+The launcher pulls the latest code, stashing your local saves first, installs
+dependencies, starts the server, and opens the game at `http://localhost:8000/` once it
+is listening. Leave the terminal window open while you play — closing it stops the server.
+
+Prefer to drive it yourself?
+
+```bash
+npm install
+npm run dev
+```
+
+Then point your Flash browser at `http://localhost:8000/`.
+
+**Making a character.** Register any email and password on the login screen — it is your
+local server, so the account is created on the spot and stored in
+`src/server/data/Accounts.json`. Your characters live in `src/server/data/saves/`, which
+git ignores, so updating the project never overwrites your progress.
+
+If you would rather skip straight to the content, the seeder below gives you a
+fully-completed character in every class.
+
+**If it does not start:**
+
+| Symptom | Cause |
+| --- | --- |
+| `ERROR: Node.js is not installed or not on PATH` | Install Node.js LTS and re-run the launcher. |
+| Browser opens but the page is blank | Flash is not enabled in that browser. Use FlashBrowser or a standalone Flash player. |
+| Port 8000 already in use | Another copy of the server is still running. Close its terminal window. |
+
 ## Playtest account
 
 For local testing there is a seeder that creates `test@theminesa.studio` with six
