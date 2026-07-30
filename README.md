@@ -74,6 +74,11 @@ fully-completed character in every class.
 | `ERROR: Node.js is not installed or not on PATH` | Install Node.js LTS and re-run the launcher. |
 | Browser opens but the page is blank | Flash is not enabled in that browser. Use FlashBrowser or a standalone Flash player. |
 | Port 8000 already in use | Another copy of the server is still running. Close its terminal window. |
+| The launcher stashed your changes and you want them back | `git stash list`, then `git stash pop` — the launcher labels its stashes with a timestamp. |
+
+The same walkthrough, starting from the clone, is on the
+[How to play](https://github.com/theminesastudios/dungeon-blitz-r/wiki/How-to-play-Dungeon-Blitz%3F)
+wiki page.
 
 ## Playtest account
 
