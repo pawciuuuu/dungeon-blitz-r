@@ -224,13 +224,13 @@
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.42</BaseDamageMult>
+		<BaseDamageMult>1.07</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
-		<Description>Deliver two bonecrushing blows that total #dmg# damage to every foe within reach of your swing, the second shredding their Armor. [Stats: x1.42 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver two bonecrushing blows that total #dmg# damage to every foe within reach of your swing, the second shredding their Armor. [Stats: x1.07 damage, -5% Defense, over 5s]</Description>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
 		<CastSound>snd_pwr_paladin_smash_back[450]snd_pwr_paladin_smash_swing_01,snd_pwr_paladin_smash_vox_01$[550]snd_pwr_paladin_smash_swing_02,snd_pwr_paladin_smash_vox_02$</CastSound>
@@ -257,14 +257,14 @@
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.12</BaseDamageMult>
+		<BaseDamageMult>0.84</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.12 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x0.84 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -292,14 +292,14 @@
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.21</BaseDamageMult>
+		<BaseDamageMult>0.91</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.21 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x0.91 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -327,14 +327,14 @@
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.31</BaseDamageMult>
+		<BaseDamageMult>0.98</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.31 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x0.98 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -362,14 +362,14 @@
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.41</BaseDamageMult>
+		<BaseDamageMult>1.06</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.41 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.06 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -397,14 +397,14 @@
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.41</BaseDamageMult>
+		<BaseDamageMult>1.06</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.41 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.06 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased AoE.</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -432,14 +432,14 @@
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.55</BaseDamageMult>
+		<BaseDamageMult>1.16</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.55 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.16 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -463,19 +463,19 @@
 		<AoERadius>50</AoERadius>
 		<CenterOffset>20</CenterOffset>
 		<CastAnim>MaceSlam</CastAnim>
-		<CastTime>400,350</CastTime>
+		<CastTime>550,450</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.71</BaseDamageMult>
+		<BaseDamageMult>1.28</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.71 damage, -5% Defense, over 5s]</Description>
-		<UpgradeDescription>Faster cast animation. Increased Damage #olddmg#</UpgradeDescription>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.28 damage, -5% Defense, over 5s]</Description>
+		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
 		<CastSound>snd_pwr_paladin_smash_back[450]snd_pwr_paladin_smash_swing_01,snd_pwr_paladin_smash_vox_01$[550]snd_pwr_paladin_smash_swing_02,snd_pwr_paladin_smash_vox_02$</CastSound>
@@ -498,18 +498,18 @@
 		<AoERadius>60</AoERadius>
 		<CenterOffset>20</CenterOffset>
 		<CastAnim>MaceSlam</CastAnim>
-		<CastTime>400,350</CastTime>
+		<CastTime>550,450</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.8</BaseDamageMult>
+		<BaseDamageMult>1.35</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.8 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.35 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased AoE and Damage  #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -533,18 +533,18 @@
 		<AoERadius>60</AoERadius>
 		<CenterOffset>20</CenterOffset>
 		<CastAnim>MaceSlam</CastAnim>
-		<CastTime>400,350</CastTime>
+		<CastTime>550,450</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.89</BaseDamageMult>
+		<BaseDamageMult>1.42</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.89 damage, -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x1.42 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -568,18 +568,18 @@
 		<AoERadius>70</AoERadius>
 		<CenterOffset>20</CenterOffset>
 		<CastAnim>MaceSlam</CastAnim>
-		<CastTime>400,350</CastTime>
+		<CastTime>550,450</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>2.88,2.88</BaseDamageMult>
+		<BaseDamageMult>2.16</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Smash</PowerGroup>
 		<AddTargetBuff>Last:ArmorBane</AddTargetBuff>
 		<DisplayName>Smash</DisplayName>
 		<BasePowerName>Smash</BasePowerName>
-		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: -5% Defense, over 5s]</Description>
+		<Description>Deliver a multi-hit melee combo that damages nearby foes, the second blow shredding their Armor [Stats: x2.16 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased AoE and Damage  #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_MaceSmash</IconName>
 		<RuneIcon>a_RuneIcon_01</RuneIcon>
@@ -987,12 +987,12 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.9</BaseDamageMult>
+		<BaseDamageMult>1.43</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
 		<DisplayName>Cleave</DisplayName>
-		<Description>Cleave an arc of destruction that deals #dmg# damage to every foe in its wake. [Stats: x1.9 damage]</Description>
+		<Description>Cleave an arc of destruction that deals #dmg# damage to every foe in its wake. [Stats: x1.43 damage]</Description>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
 		<CastSound>[200]snd_pwr_paladin_cleave</CastSound>
@@ -1020,13 +1020,13 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.42</BaseDamageMult>
+		<BaseDamageMult>1.07</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages nearby foes [Stats: x1.42 damage]</Description>
+		<Description>Unleash a single, heavy melee attack that damages nearby foes [Stats: x1.07 damage]</Description>
 		<UpgradeDescription>Unleash a single, heavy melee attack that damages nearby foes</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1055,13 +1055,13 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.56</BaseDamageMult>
+		<BaseDamageMult>1.17</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages nearby foes [Stats: x1.56 damage]</Description>
+		<Description>Unleash a single, heavy melee attack that damages nearby foes [Stats: x1.17 damage]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1090,13 +1090,13 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.72</BaseDamageMult>
+		<BaseDamageMult>1.29</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages nearby foes [Stats: x1.72 damage]</Description>
+		<Description>Unleash a single, heavy melee attack that damages nearby foes [Stats: x1.29 damage]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1125,14 +1125,14 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.72</BaseDamageMult>
+		<BaseDamageMult>1.29</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
 		<AddTargetBuff>Crippled</AddTargetBuff>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.72 damage, -10% Speed, over 5s]</Description>
+		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.29 damage, -10% Speed, over 5s]</Description>
 		<UpgradeDescription>Adds Cripple.</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1161,7 +1161,7 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.81</BaseDamageMult>
+		<BaseDamageMult>1.36</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
@@ -1169,7 +1169,7 @@
 		<AddSelfBuff>Phalanx25</AddSelfBuff>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.81 damage, +25% Defense, over 5s, -10% Speed, over 5s]</Description>
+		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.36 damage, +25% Defense, over 5s, -10% Speed, over 5s]</Description>
 		<UpgradeDescription>25% Defense Boost during cast and Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1198,7 +1198,7 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.99</BaseDamageMult>
+		<BaseDamageMult>1.49</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
@@ -1206,7 +1206,7 @@
 		<AddSelfBuff>Phalanx25</AddSelfBuff>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.99 damage, +25% Defense, over 5s, -10% Speed, over 5s]</Description>
+		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.49 damage, +25% Defense, over 5s, -10% Speed, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1235,7 +1235,7 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>1.99</BaseDamageMult>
+		<BaseDamageMult>1.49</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
@@ -1243,7 +1243,7 @@
 		<AddSelfBuff>Phalanx25</AddSelfBuff>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.99 damage, +25% Defense, over 5s, -10% Speed, over 5s]</Description>
+		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.49 damage, +25% Defense, over 5s, -10% Speed, over 5s]</Description>
 		<UpgradeDescription>Adds a stack of Cripple.</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1272,7 +1272,7 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>2.19</BaseDamageMult>
+		<BaseDamageMult>1.64</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
@@ -1280,7 +1280,7 @@
 		<AddSelfBuff>Phalanx25</AddSelfBuff>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x2.19 damage, +25% Defense, over 5s, -10% Speed, over 5s]</Description>
+		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.64 damage, +25% Defense, over 5s, -10% Speed, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1309,7 +1309,7 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>2.19</BaseDamageMult>
+		<BaseDamageMult>1.64</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
@@ -1317,7 +1317,7 @@
 		<AddSelfBuff>Phalanx35</AddSelfBuff>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x2.19 damage, +35% Defense, over 5s, -10% Speed, over 5s]</Description>
+		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x1.64 damage, +35% Defense, over 5s, -10% Speed, over 5s]</Description>
 		<UpgradeDescription>35% Defense Boost during cast.</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1346,7 +1346,7 @@
 		<ShakeTime>500</ShakeTime>
 		<CoolDownTime>0</CoolDownTime>
 		<ManaCost>20</ManaCost>
-		<BaseDamageMult>5.76</BaseDamageMult>
+		<BaseDamageMult>4.32</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>Cleave</PowerGroup>
@@ -1354,7 +1354,7 @@
 		<AddSelfBuff>Phalanx</AddSelfBuff>
 		<DisplayName>Cleave</DisplayName>
 		<BasePowerName>Cleave</BasePowerName>
-		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x5.76 damage, +50% Defense, over 5s, -10% Speed, over 5s]</Description>
+		<Description>Unleash a single, heavy melee attack that damages and Cripples nearby foes [Stats: x4.32 damage, +50% Defense, over 5s, -10% Speed, over 5s]</Description>
 		<UpgradeDescription>50% Defense Boost during cast and Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_AxeCleave</IconName>
 		<RuneIcon>a_RuneIcon_03</RuneIcon>
@@ -1794,7 +1794,7 @@
 		<CastTime>480,380</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
-		<ManaCost>25</ManaCost>
+		<ManaCost>30</ManaCost>
 		<BaseDamageMult>1.71,0.57</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
@@ -1833,7 +1833,7 @@
 		<CastTime>480,380</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
-		<ManaCost>25</ManaCost>
+		<ManaCost>30</ManaCost>
 		<BaseDamageMult>1.04,.5</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
@@ -1874,7 +1874,7 @@
 		<CastTime>480,380</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
-		<ManaCost>25</ManaCost>
+		<ManaCost>30</ManaCost>
 		<BaseDamageMult>1.16,.5</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
@@ -1915,7 +1915,7 @@
 		<CastTime>480,380</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
-		<ManaCost>25</ManaCost>
+		<ManaCost>30</ManaCost>
 		<BaseDamageMult>1.2,.6</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
@@ -1956,7 +1956,7 @@
 		<CastTime>480,380</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
-		<ManaCost>25</ManaCost>
+		<ManaCost>30</ManaCost>
 		<BaseDamageMult>1.3,.64</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
@@ -1997,7 +1997,7 @@
 		<CastTime>480,380</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
-		<ManaCost>25</ManaCost>
+		<ManaCost>30</ManaCost>
 		<BaseDamageMult>1.5,.64</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
@@ -2038,7 +2038,7 @@
 		<CastTime>480,380</CastTime>
 		<RecoverTime>500</RecoverTime>
 		<CoolDownTime>0</CoolDownTime>
-		<ManaCost>25</ManaCost>
+		<ManaCost>30</ManaCost>
 		<BaseDamageMult>1.6,.72</BaseDamageMult>
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
@@ -2089,7 +2089,7 @@
 		<DisplayName>Warcry</DisplayName>
 		<BasePowerName>Warcry</BasePowerName>
 		<Description>Deal damage to foes in the impact area, Staggering, Demoralizing and Taunting them [Stats: -10% Melee Damage, -20% Speed, over 5s]</Description>
-		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
+		<UpgradeDescription>-5 Mana Cost. Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningShieldBurst</IconName>
 		<RuneIcon>a_RuneIcon_05</RuneIcon>
 		<CastSound>snd_pwr_paladin_warcry_jumpland,snd_pwr_paladin_warcry_vox_01$[300]snd_pwr_paladin_warcry_woosh[400]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -4147,11 +4147,11 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>DivineWord</PowerGroup>
-		<AddTargetBuff>Weakened,HolyFire2</AddTargetBuff>
+		<AddTargetBuff>Weakened,HolyFire1</AddTargetBuff>
 		<ComboName>DivineWordCombo4</ComboName>
 		<DisplayName>Divine Word</DisplayName>
 		<BasePowerName>DivineWord</BasePowerName>
-		<Description>Grant your allies a small healing surge, Weaken your enemies in an AoE and bathe them in Holy Fire [Stats: x1.3 damage, -10% Melee Damage, over 5s, 1.3 damage/s, over 5s]</Description>
+		<Description>Grant your allies a small healing surge, Weaken your enemies in an AoE and bathe them in Holy Fire [Stats: x1.3 damage, -10% Melee Damage, over 5s, 1 damage/s, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_DivineWord</IconName>
 		<CastSound>[200]CHR_Templar_DivineWord_Cast</CastSound>
@@ -4191,11 +4191,11 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>DivineWord</PowerGroup>
-		<AddTargetBuff>Weakened,Weakened,HolyFire2</AddTargetBuff>
+		<AddTargetBuff>Weakened,Weakened,HolyFire1</AddTargetBuff>
 		<ComboName>DivineWordCombo4</ComboName>
 		<DisplayName>Divine Word</DisplayName>
 		<BasePowerName>DivineWord</BasePowerName>
-		<Description>Grant your allies a small healing surge, Weaken your enemies in an AoE and bathe them in Holy Fire [Stats: x1.3 damage, -10% Melee Damage, over 5s, 1.3 damage/s, over 5s]</Description>
+		<Description>Grant your allies a small healing surge, Weaken your enemies in an AoE and bathe them in Holy Fire [Stats: x1.3 damage, -10% Melee Damage, over 5s, 1 damage/s, over 5s]</Description>
 		<UpgradeDescription>-1 Mana Cost. +1 Weaken</UpgradeDescription>
 		<IconName>a_PowerIcon_DivineWord</IconName>
 		<CastSound>[200]CHR_Templar_DivineWord_Cast</CastSound>
@@ -4235,11 +4235,11 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>DivineWord</PowerGroup>
-		<AddTargetBuff>Weakened,Weakened,HolyFire2</AddTargetBuff>
+		<AddTargetBuff>Weakened,Weakened,HolyFire1</AddTargetBuff>
 		<ComboName>DivineWordCombo4</ComboName>
 		<DisplayName>Divine Word</DisplayName>
 		<BasePowerName>DivineWord</BasePowerName>
-		<Description>Grant your allies a small healing surge, Weaken your enemies in an AoE and bathe them in Holy Fire [Stats: x1.4 damage, -10% Melee Damage, over 5s, 1.3 damage/s, over 5s]</Description>
+		<Description>Grant your allies a small healing surge, Weaken your enemies in an AoE and bathe them in Holy Fire [Stats: x1.4 damage, -10% Melee Damage, over 5s, 1 damage/s, over 5s]</Description>
 		<UpgradeDescription>-1 Mana Cost. Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_DivineWord</IconName>
 		<CastSound>[200]CHR_Templar_DivineWord_Cast</CastSound>
@@ -4279,11 +4279,11 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>DivineWord</PowerGroup>
-		<AddTargetBuff>Weakened,Weakened,HolyFire3</AddTargetBuff>
+		<AddTargetBuff>Weakened,Weakened,HolyFire1</AddTargetBuff>
 		<ComboName>DivineWordCombo10</ComboName>
 		<DisplayName>Divine Word</DisplayName>
 		<BasePowerName>DivineWord</BasePowerName>
-		<Description>Grant your allies a small healing surge, Weaken your enemies in an AoE and bathe them in Holy Fire [Stats: x1.52 damage, -10% Melee Damage, over 5s, 1.6 damage/s, over 5s]</Description>
+		<Description>Grant your allies a small healing surge, Weaken your enemies in an AoE and bathe them in Holy Fire [Stats: x1.52 damage, -10% Melee Damage, over 5s, 1 damage/s, over 5s]</Description>
 		<UpgradeDescription>-1 Mana Cost, 63% Heal over 3 sec</UpgradeDescription>
 		<IconName>a_PowerIcon_DivineWord</IconName>
 		<CastSound>[200]CHR_Templar_DivineWord_Cast</CastSound>
@@ -5359,7 +5359,7 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Holy</DamageType>
 		<PowerGroup>FountainOfLife</PowerGroup>
-		<AddTargetBuff>HolyFire2</AddTargetBuff>
+		<AddTargetBuff>HolyFire1</AddTargetBuff>
 		<BasePowerName>FountainOfLifeCombo</BasePowerName>
 		<CastGfx/>
 		<FireGfx/>
@@ -5386,7 +5386,7 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Holy</DamageType>
 		<PowerGroup>FountainOfLife</PowerGroup>
-		<AddTargetBuff>HolyFire2</AddTargetBuff>
+		<AddTargetBuff>HolyFire1</AddTargetBuff>
 		<BasePowerName>FountainOfLifeCombo</BasePowerName>
 		<CastGfx/>
 		<FireGfx/>
@@ -5413,7 +5413,7 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Holy</DamageType>
 		<PowerGroup>FountainOfLife</PowerGroup>
-		<AddTargetBuff>HolyFire2</AddTargetBuff>
+		<AddTargetBuff>HolyFire1</AddTargetBuff>
 		<BasePowerName>FountainOfLifeCombo</BasePowerName>
 		<CastGfx/>
 		<FireGfx/>
@@ -5440,7 +5440,7 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Holy</DamageType>
 		<PowerGroup>FountainOfLife</PowerGroup>
-		<AddTargetBuff>HolyFire3</AddTargetBuff>
+		<AddTargetBuff>HolyFire1</AddTargetBuff>
 		<BasePowerName>FountainOfLifeCombo</BasePowerName>
 		<CastGfx/>
 		<FireGfx/>
@@ -7335,7 +7335,7 @@
 		<PowerGroup>LeoneanAura</PowerGroup>
 		<AddTargetBuff>LeoneanAura1</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 15% Attack and Expertise boost. [Stats: +15% Damage, over 1s]</Description>
+		<Description>Create an aura that grants nearby allies a 15% attack and expertise boost, duration is increased by expertise. [Stats: +15% Damage, over 4s]</Description>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
 		<CastAnimSource>Feet</CastAnimSource>
@@ -7367,7 +7367,7 @@
 		<AddTargetBuff>LeoneanAura1</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 15% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +15% Damage, over 1s]</Description>
+		<Description>Create an aura that grants nearby allies a 15% attack and expertise boost, duration is increased by expertise. [Stats: +15% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants a 15% Attack and Expertise Boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7400,7 +7400,7 @@
 		<AddTargetBuff>LeoneanAura2</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 16% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +16% Damage, over 1s]</Description>
+		<Description>Create an aura that grants nearby allies a 16% attack and expertise boost, duration is increased by expertise. [Stats: +16% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants a 16% Attack and Expertise Boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7433,7 +7433,7 @@
 		<AddTargetBuff>LeoneanAura3</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies an 18% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +18% Damage, over 1s]</Description>
+		<Description>Create an aura that grants nearby allies a 18% attack and expertise boost, duration is increased by expertise. [Stats: +18% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants an 18% Attack and Expertise Boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7466,7 +7466,7 @@
 		<AddTargetBuff>LeoneanAura4</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 19% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +19% Damage, over 1.5s]</Description>
+		<Description>Create an aura that grants nearby allies a 19% attack and expertise boost, duration is increased by expertise. [Stats: +19% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants a 19% Attack and Expertise Boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7499,7 +7499,7 @@
 		<AddTargetBuff>LeoneanAura5</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 20% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +20% Damage, over 1.5s]</Description>
+		<Description>Create an aura that grants nearby allies a 20% attack and expertise boost, duration is increased by expertise. [Stats: +20% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants a 20% Attack and Expertise Boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7532,7 +7532,7 @@
 		<AddTargetBuff>LeoneanAura6</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 25% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +25% Damage, over 1.5s]</Description>
+		<Description>Create an aura that grants nearby allies a 25% attack and expertise boost, duration is increased by expertise. [Stats: +25% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants a 25% Attack and Expertise boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7565,7 +7565,7 @@
 		<AddTargetBuff>LeoneanAura7</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 26% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +26% Damage, over 2.5s]</Description>
+		<Description>Create an aura that grants nearby allies a 26% attack and expertise boost, duration is increased by expertise. [Stats: +26% Damage, over 4s]</Description>
 		<UpgradeDescription>Grantsa 26% Attack and Expertise boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7598,7 +7598,7 @@
 		<AddTargetBuff>LeoneanAura8</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 28% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +28% Damage, over 2.5s]</Description>
+		<Description>Create an aura that grants nearby allies a 28% attack and expertise boost, duration is increased by expertise. [Stats: +28% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants a 28% Attack and Expertise boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7631,7 +7631,7 @@
 		<AddTargetBuff>LeoneanAura9</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 30% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +30% Damage, over 2.5s]</Description>
+		<Description>Create an aura that grants nearby allies a 30% attack and expertise boost, duration is increased by expertise. [Stats: +30% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants a 30% Attack and Expertise boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -7664,7 +7664,7 @@
 		<AddTargetBuff>LeoneanAura10</AddTargetBuff>
 		<DisplayName>Empyrean Aura</DisplayName>
 		<BasePowerName>LeoneanAura</BasePowerName>
-		<Description>For 5 seconds, create an aura that grants nearby Allies a 33% Attack and Expertise boost. The boost lasts #dur# seconds. [Stats: +33% Damage, over 4s]</Description>
+		<Description>Create an aura that grants nearby allies a 33% attack and expertise boost, duration is increased by expertise. [Stats: +33% Damage, over 4s]</Description>
 		<UpgradeDescription>Grants a 33% Attack and Expertise boost</UpgradeDescription>
 		<IconName>a_PowerIcon_EmpyreanRadiance</IconName>
 		<CastSound>CHR_Templar_LeoneanAura_A[830]CHR_Templar_LeoneanAura_B</CastSound>
@@ -8184,7 +8184,7 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Holy</DamageType>
 		<PowerGroup>Sanctum</PowerGroup>
-		<AddTargetBuff>Blinded,HolyFire3</AddTargetBuff>
+		<AddTargetBuff>Blinded,HolyFire1</AddTargetBuff>
 		<CastGfx/>
 		<FireGfx/>
 		<HitGfx/>
@@ -11299,9 +11299,9 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
-		<Description>Turns a foe into a Lightning Bomb causing them to explode when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x2.03 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x2.03 damage, -5% Defense, over 5s]</Description>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
 		<CastAnimSource>Feet</CastAnimSource>
@@ -11394,10 +11394,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Turns a foe into a Lightning Bomb causing them to explode when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x3.68 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x3.68 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Turns a foe into a Lightning Bomb causing them to explode when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it.</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11434,10 +11434,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x3.9 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x3.9 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage to initial attack. #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11474,10 +11474,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x3.9 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x3.9 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>-5 Second Cooldown.</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11514,10 +11514,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x4 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x4 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11554,10 +11554,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x4 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x4 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11594,10 +11594,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x4.36 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x4.36 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>-5 Second Cooldown. Increased Damage to initial attack. #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11634,10 +11634,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x4.77 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x4.77 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11674,10 +11674,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x4.87 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x4.87 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>-5 Second Cooldown. Increased Damage to final bomb.</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11714,10 +11714,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x4.97 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x4.97 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>
@@ -11754,10 +11754,10 @@
 		<ProcModifier>1</ProcModifier>
 		<DamageType>Physical</DamageType>
 		<PowerGroup>LightningBomb</PowerGroup>
-		<AddTargetBuff>LightningBomb,ArmorBane,ArmorBane</AddTargetBuff>
+		<AddTargetBuff>LightningBomb,ArmorBane</AddTargetBuff>
 		<DisplayName>Lightning Bomb</DisplayName>
 		<BasePowerName>LightningBomb</BasePowerName>
-		<Description>Stab a foe, applying 2 stacks of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and Armor Bane on everything caught in it. [Stats: x4.97 damage, -5% Defense, over 5s]</Description>
+		<Description>Stab a foe, applying 1 stack of Armor Bane and turning them into a Lightning Bomb that explodes when killed. The blast leaves 2 stacks of Ignite and 1 stack of Armor Bane on everything caught in it. [Stats: x4.97 damage, -5% Defense, over 5s]</Description>
 		<UpgradeDescription>Increased Damage #olddmg#</UpgradeDescription>
 		<IconName>a_PowerIcon_LightningBomb</IconName>
 		<CastSound>[290]snd_pwr_paladin_warcry_vox_02$</CastSound>

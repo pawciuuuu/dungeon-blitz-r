@@ -1051,7 +1051,7 @@ export class CharacterHandler {
                      // guess about floor it cannot check, and next to a ledge or a pit that
                      // guess drops the joiner through the map.
                      const otherEntity = other.clientEntID > 0 ? other.entities?.get(other.clientEntID) : null;
-                     const anchorGround = LevelHandler.resolveGroundedAnchorPosition(otherEntity);
+                     const anchorGround = LevelHandler.resolveGroundedAnchorPosition(otherEntity, normalizedTarget);
                      if (anchorGround) {
                          spawn = {
                              x: anchorGround.x,

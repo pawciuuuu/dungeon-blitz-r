@@ -20,7 +20,16 @@ import { clearOpenBossScene, getOpenBossScene, isRoomBossEntity, markRoomBossEnt
 import { getBossIdentityKey, getBossIdentityKeys } from '../core/BossCopyCensus';
 import { TutorialDungeonAuthorityEntity, TutorialDungeonMechanics } from '../core/TutorialDungeonMechanics';
 import { MovementAuthority } from '../core/MovementAuthority';
-import { inheritGroundedSample, noteGroundedSample } from '../core/GroundedPosition';
+import { discardForeignGroundedSample, inheritGroundedSample, noteGroundedSample } from '../core/GroundedPosition';
+import {
+    buildHomeStatueEntity,
+    HOME_STATUE_LEVEL,
+    HOME_STATUE_SLOTS,
+    isHomeStatueEntityId,
+    readHomeStatues
+} from '../core/HomeStatues';
+import { getCraftTownHomeOwnerCharacter } from '../utils/HomeVisitGuard';
+import { HomeStatueHandler } from './HomeStatueHandler';
 
 export class EntityHandler {
     private static readonly CLIENT_SPAWN_LEVELS = new Set<string>([
@@ -3828,11 +3837,51 @@ export class EntityHandler {
         }
     }
 
+    /**
+     * Spawns the keep garden statues for whoever just walked into a CraftTown instance.
+     *
+     * The line-up is always the one belonging to *this session's* keep owner - itself when you are
+     * home, the host when you are visiting - and it is delivered **only to this session**.
+     *
+     * Statues are deliberately kept out of `GlobalState.levelEntities`. They carry fixed entity ids,
+     * so two accounts' statues would occupy the same three ids; the moment anything put them in a
+     * shared level map, an account could be shown another account's characters (which is exactly
+     * what happens if two keeps ever resolve to the same level scope). Living only in
+     * `client.entities` means no generic broadcast, joiner sync or map sweep can reach them, so a
+     * session can never receive a set that is not its own. Props are rebuilt from the stored snapshot
+     * on every send, so a statue re-dressed while nobody was watching still comes up correct.
+     */
+    static sendHomeStatues(client: Client): void {
+        if (client.currentLevel !== HOME_STATUE_LEVEL || !client.playerSpawned) {
+            return;
+        }
+
+        const owner = getCraftTownHomeOwnerCharacter(client.character, client.craftTownHostCharacter);
+        const book = readHomeStatues(owner);
+
+        for (const slot of HOME_STATUE_SLOTS) {
+            const snapshot = book[slot.characterClass];
+            if (!snapshot || client.knownEntityIds.has(slot.entityId)) {
+                continue;
+            }
+
+            const entityProps = buildHomeStatueEntity(slot, snapshot);
+            client.entities.set(slot.entityId, { ...entityProps });
+            EntityHandler.sendEntity(client, entityProps);
+        }
+    }
+
     // 0x8
     static handleEntityFullUpdate(client: Client, data: Buffer): void {
         const br = new BitReader(data);
 
         const rawEntityId = br.readMethod9();
+        // Keep garden statues are server-owned and per-session. Accepting a client update for one
+        // would file it into the shared level map, which is the one way another account could end up
+        // being shown someone else's statues.
+        if (isHomeStatueEntityId(rawEntityId)) {
+            return;
+        }
         let entityId = rawEntityId;
         const posX = br.readMethod24();
         const posY = br.readMethod24();
@@ -3994,11 +4043,39 @@ export class EntityHandler {
                 ?? client.entities.get(rawEntityId)
                 ?? existingLevelMap?.get(entityId);
             inheritGroundedSample(props, previousEntity);
+            // A sample the entity carried in from the level it just left is not floor here.
+            // The inherit above is what makes it survive the level change at all, so this is
+            // the one place that can tell the difference.
+            discardForeignGroundedSample(props, levelName);
             EntityHandler.discardDriftedGroundedSample(client, props, previousEntity, posX, posY);
             // The client sends its true absolute position here, so a standing full update is
             // the most trustworthy floor sample there is -- including the one that arrives on
             // spawn, which is what gives a player who leaves immediately a point to return to.
-            noteGroundedSample(props, posX, posY, bJumping || bDropping);
+            const standing = !bJumping && !bDropping;
+            noteGroundedSample(props, posX, posY, !standing, levelName, true);
+
+            /**
+             * ...and it is the only coordinate that may ever be replayed as a spawn point.
+             *
+             * Every other position the server holds is `entity.x/y`: a sum of movement deltas
+             * on top of whatever the server *believed* the last spawn point was. When the
+             * client disagreed with that belief -- snapping the body up to 160px onto floor,
+             * or letting it fall because there was no floor inside its snap window -- it
+             * corrected itself with no delta to say so, and the offset was inherited by every
+             * later sample, saved, and handed back as the next spawn. That is the loop that
+             * put players in the air on entry, and it compounds: each visit falls from the
+             * error the last one left behind, which is how a live CraftTown record reached
+             * y=-349 with the floor at 1460.
+             *
+             * This packet is the client telling the server where it actually is, while telling
+             * it that it is standing. Recording it here, and reading nothing else at spawn
+             * time (LevelConfig.getConfirmedSpawnForLevel), closes the loop: the worst case
+             * becomes "no confirmed point yet, use the level's authored spawn", which is floor
+             * by construction.
+             */
+            if (ownsThisPlayerPacket && standing && client.character) {
+                LevelConfig.rememberConfirmedSpawn(client.character, levelName, posX, posY);
+            }
         }
 
         if (!isPlayer) {
@@ -4090,6 +4167,7 @@ export class EntityHandler {
              EntityHandler.broadcastPlayerMountState(client, props.id, equippedMountId);
              BuildingHandler.refreshCraftTownBuildingsOnSpawn(client);
              EntityHandler.sendCraftTownAuthoredNpcs(client);
+             HomeStatueHandler.onCraftTownSpawn(client);
         }
     }
 

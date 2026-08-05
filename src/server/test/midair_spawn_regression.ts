@@ -121,14 +121,27 @@ function testGroundedSampleTracksTheLastStandingPosition(): void {
     assert.equal(jumping.groundedY, GROUND_Y);
 }
 
-// The helper every anchor spawn now goes through.
+/**
+ * The helper every anchor spawn goes through.
+ *
+ * It answers with a confirmed sample or with nothing. "Nothing" is a good answer: the caller
+ * falls back to the level's own spawn marker, which is floor by construction, where a
+ * dead-reckoned guess is only floor by luck.
+ */
 function testAnchorPositionRefusesOpenAir(): void {
     assert.equal(LevelHandler.resolveGroundedAnchorPosition(null), null);
 
     assert.deepEqual(
-        LevelHandler.resolveGroundedAnchorPosition({ x: 5, y: 9, groundedX: 100, groundedY: 200, airborne: true }),
+        LevelHandler.resolveGroundedAnchorPosition({
+            x: 5,
+            y: 9,
+            groundedX: 100,
+            groundedY: 200,
+            groundedAbsolute: true,
+            airborne: true,
+        }),
         { x: 100, y: 200 },
-        'the grounded sample wins over a live airborne position'
+        'the confirmed sample wins over a live airborne position'
     );
 
     assert.equal(
@@ -147,10 +160,10 @@ function testAnchorPositionRefusesOpenAir(): void {
         'dropping through a platform counts too'
     );
 
-    assert.deepEqual(
+    assert.equal(
         LevelHandler.resolveGroundedAnchorPosition({ x: 640, y: 880 }),
-        { x: 640, y: 880 },
-        'a standing anchor with no sample yet is still usable'
+        null,
+        'a live position the client never confirmed is not a place to put a body'
     );
 }
 
@@ -189,10 +202,82 @@ function testUnauthoredSpawnYieldsNoCoordinate(): void {
     assert.equal(jade.x, 10_430, 'a 0,0 record falls through to the authored spawn');
     assert.equal(jade.y, 1_058);
 
-    // And a real saved position still round-trips.
-    const saved: any = { CurrentLevel: { name: 'JadeCity', x: 12_777, y: 880 } };
-    const kept = LevelConfig.getSpawnCoordinates(saved, 'BridgeTown', 'JadeCity');
-    assert.deepEqual({ x: kept.x, y: kept.y, hasCoord: kept.hasCoord }, { x: 12_777, y: 880, hasCoord: true });
+    // A dead-reckoned CurrentLevel is no longer replayed as a place to stand. It is a sum of
+    // movement deltas on a base the client silently corrects whenever it snaps a spawn onto
+    // floor or lets one fall, so it can be anywhere relative to real floor -- and being wrong
+    // compounded, because the next entry fell from the error the last one left behind.
+    const deadReckoned: any = { CurrentLevel: { name: 'JadeCity', x: 12_777, y: 880 } };
+    const ignored = LevelConfig.getSpawnCoordinates(deadReckoned, 'BridgeTown', 'JadeCity');
+    assert.deepEqual(
+        { x: ignored.x, y: ignored.y },
+        { x: 10_430, y: 1_058 },
+        'an unconfirmed coordinate falls through to the authored spawn, which is floor',
+    );
+}
+
+/**
+ * The only coordinate a spawn may replay is one the client reported standing on.
+ *
+ * `GroundedSpawns` is written from a standing full update -- the one packet carrying a
+ * position the server did not compute for itself -- and nothing else is trusted, so the worst
+ * case is "no confirmed point yet, use the authored spawn" rather than "drop them from the
+ * height of last time's error".
+ */
+function testOnlyAConfirmedPositionIsReplayed(): void {
+    const character: any = {};
+    assert.equal(LevelConfig.getConfirmedSpawnForLevel(character, 'JadeCity'), null);
+
+    assert.equal(LevelConfig.rememberConfirmedSpawn(character, 'JadeCity', 12_777, GROUND_Y), true);
+    assert.deepEqual(
+        LevelConfig.getConfirmedSpawnForLevel(character, 'JadeCity'),
+        { x: 12_777, y: GROUND_Y },
+    );
+
+    const resolved = LevelConfig.getSpawnCoordinates(character, 'BridgeTown', 'JadeCity');
+    assert.deepEqual(
+        { x: resolved.x, y: resolved.y, hasCoord: resolved.hasCoord },
+        { x: 12_777, y: GROUND_Y, hasCoord: true },
+        'a confirmed point is what the player came back for',
+    );
+
+    // One level's confirmed point is never offered for another.
+    assert.equal(LevelConfig.getConfirmedSpawnForLevel(character, 'BridgeTown'), null);
+    const elsewhere = LevelConfig.getSpawnCoordinates(character, 'JadeCity', 'BridgeTown');
+    assert.deepEqual({ x: elsewhere.x, y: elsewhere.y }, { x: 3_944, y: 838 }, 'authored spawn instead');
+
+    // 0,0 is the placeholder every position reset writes; storing it would make a record look
+    // real while pointing at the world origin.
+    assert.equal(LevelConfig.rememberConfirmedSpawn(character, 'CraftTown', 0, 0), false);
+    assert.equal(LevelConfig.getConfirmedSpawnForLevel(character, 'CraftTown'), null);
+}
+
+/** A dead-reckoned sample must never satisfy a caller that is about to place a body. */
+function testAnchorsRequireAConfirmedSample(): void {
+    const deadReckoned: any = {};
+    noteGroundedSample(deadReckoned, 640, 880, false, LEVEL);
+    assert.equal(
+        LevelHandler.resolveGroundedAnchorPosition(deadReckoned, LEVEL),
+        null,
+        'the server computed this position, so it is not evidence of floor',
+    );
+
+    const confirmed: any = {};
+    noteGroundedSample(confirmed, 640, 880, false, LEVEL, true);
+    assert.deepEqual(
+        LevelHandler.resolveGroundedAnchorPosition(confirmed, LEVEL),
+        { x: 640, y: 880 },
+        'the client reported standing here',
+    );
+    assert.equal(
+        LevelHandler.resolveGroundedAnchorPosition(confirmed, 'CraftTown'),
+        null,
+        'and only for the level it was measured on',
+    );
+
+    // An airborne packet never becomes a confirmed point, whichever spelling it uses.
+    const midJump: any = {};
+    noteGroundedSample(midJump, 900, -200, true, LEVEL, true);
+    assert.equal(LevelHandler.resolveGroundedAnchorPosition(midJump, LEVEL), null);
 }
 
 // The full-update packet spells the airborne state `jumping`/`dropping`, so a check that
@@ -212,24 +297,32 @@ function testBothPacketSpellingsCountAsAirborne(): void {
     );
 }
 
-// A full update rebuilds the player entity from scratch; the floor sample has to survive it.
+// A full update rebuilds the player entity from scratch; the floor sample has to survive it,
+// and so does the provenance that makes it usable as a spawn.
 function testFullUpdateKeepsTheFloorSample(): void {
-    const previous = { x: 900, y: -200, groundedX: 640, groundedY: 880 };
+    const previous = {
+        x: 900,
+        y: -200,
+        groundedX: 640,
+        groundedY: 880,
+        groundedLevel: LEVEL,
+        groundedAbsolute: true,
+    };
 
     const rebuiltMidJump: any = { x: 900, y: -200, jumping: true };
     inheritGroundedSample(rebuiltMidJump, previous);
-    noteGroundedSample(rebuiltMidJump, 900, -200, true);
+    noteGroundedSample(rebuiltMidJump, 900, -200, true, LEVEL, true);
     assert.deepEqual(
-        LevelHandler.resolveGroundedAnchorPosition(rebuiltMidJump),
+        LevelHandler.resolveGroundedAnchorPosition(rebuiltMidJump, LEVEL),
         { x: 640, y: 880 },
         'the inherited sample must survive a full update sent in mid-air'
     );
 
     const rebuiltStanding: any = { x: 1_200, y: 880 };
     inheritGroundedSample(rebuiltStanding, previous);
-    noteGroundedSample(rebuiltStanding, 1_200, 880, false);
+    noteGroundedSample(rebuiltStanding, 1_200, 880, false, LEVEL, true);
     assert.deepEqual(
-        LevelHandler.resolveGroundedAnchorPosition(rebuiltStanding),
+        LevelHandler.resolveGroundedAnchorPosition(rebuiltStanding, LEVEL),
         { x: 1_200, y: 880 },
         'a standing full update carries the client’s own absolute position and replaces the sample'
     );
@@ -247,15 +340,44 @@ function testTransferSourcePositionRefusesOpenAir(): void {
         'taking a door mid-jump keeps the last grounded return point'
     );
 
+    // A sample the server computed for itself is not a return point either, however grounded
+    // its flags claim to be -- only one the client reported standing on.
     syncSourcePosition(character, LEVEL, { x: 11_000, y: -848, airborne: true, groundedX: 11_000, groundedY: GROUND_Y });
     assert.deepEqual(
         character.CurrentLevel,
-        { name: LEVEL, x: 11_000, y: GROUND_Y },
-        'the floor sample under a falling body is a valid return point'
+        { name: LEVEL, x: 10_470, y: GROUND_Y },
+        'a dead-reckoned floor sample under a falling body is not a return point'
     );
 
-    syncSourcePosition(character, LEVEL, { x: 12_000, y: GROUND_Y });
-    assert.deepEqual(character.CurrentLevel, { name: LEVEL, x: 12_000, y: GROUND_Y });
+    syncSourcePosition(character, LEVEL, {
+        x: 11_000,
+        y: -848,
+        airborne: true,
+        groundedX: 11_000,
+        groundedY: GROUND_Y,
+        groundedLevel: LEVEL,
+        groundedAbsolute: true,
+    });
+    assert.deepEqual(
+        character.CurrentLevel,
+        { name: LEVEL, x: 11_000, y: GROUND_Y },
+        'the confirmed floor sample under a falling body is a valid return point'
+    );
+
+    // ...and a confirmed sample from another level is refused outright.
+    syncSourcePosition(character, LEVEL, {
+        x: 12_000,
+        y: GROUND_Y,
+        groundedX: 12_000,
+        groundedY: GROUND_Y,
+        groundedLevel: 'CraftTown',
+        groundedAbsolute: true,
+    });
+    assert.deepEqual(
+        character.CurrentLevel,
+        { name: LEVEL, x: 11_000, y: GROUND_Y },
+        'CraftTown floor is not a JadeCity return point'
+    );
 }
 
 // The record replayed on the next login is the other way a player arrives in mid-air.
@@ -313,6 +435,8 @@ function main(): void {
         testAnchorPositionRefusesOpenAir();
         testAirborneArrivalNeverSavesOpenAir();
         testUnauthoredSpawnYieldsNoCoordinate();
+        testOnlyAConfirmedPositionIsReplayed();
+        testAnchorsRequireAConfirmedSample();
         testBothPacketSpellingsCountAsAirborne();
         testFullUpdateKeepsTheFloorSample();
         testTransferSourcePositionRefusesOpenAir();
