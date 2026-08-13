@@ -54457,7 +54457,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1</ArmorClass>
+		<HitPoints>1</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree1" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 1</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1</ArmorClass>
 		<HitPoints>1</HitPoints>
@@ -54480,7 +54503,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1</ArmorClass>
+		<HitPoints>1.15</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree2" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 2</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1</ArmorClass>
 		<HitPoints>1.15</HitPoints>
@@ -54503,7 +54549,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1.15</ArmorClass>
+		<HitPoints>1.15</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree3" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 3</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.15</ArmorClass>
 		<HitPoints>1.15</HitPoints>
@@ -54526,7 +54595,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1.15</ArmorClass>
+		<HitPoints>1.15</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree4" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 4</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.15</ArmorClass>
 		<HitPoints>1.15</HitPoints>
@@ -54549,7 +54641,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1.15</ArmorClass>
+		<HitPoints>1.3</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree5" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 5</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.15</ArmorClass>
 		<HitPoints>1.3</HitPoints>
@@ -54572,7 +54687,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1.3</ArmorClass>
+		<HitPoints>1.3</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree6" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 6</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.3</ArmorClass>
 		<HitPoints>1.3</HitPoints>
@@ -54595,7 +54733,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1.3</ArmorClass>
+		<HitPoints>1.3</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree7" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 7</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.3</ArmorClass>
 		<HitPoints>1.3</HitPoints>
@@ -54618,7 +54779,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1.3</ArmorClass>
+		<HitPoints>1.45</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree8" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 8</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.3</ArmorClass>
 		<HitPoints>1.45</HitPoints>
@@ -54641,7 +54825,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1.45</ArmorClass>
+		<HitPoints>1.45</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree9" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3 Rank 9</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.45</ArmorClass>
 		<HitPoints>1.45</HitPoints>
@@ -54664,7 +54871,30 @@
 		<Powers>FalseChi</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
+		<MagicDamage>1</MagicDamage>
+		<ArmorClass>1.45</ArmorClass>
+		<HitPoints>1.45</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>PlayerPet</Realm>
+		<Speed>9</Speed>
+		<Width>70</Width>
+		<Height>125</Height>
+		<Behavior>ScalingFollowPet</Behavior>
+		<DramaAnim>Revive</DramaAnim>
+		<EquippedGear/>
+		<GfxType>
+			<Shadow>None</Shadow>
+		</GfxType>
+	</EntType>
+	<EntType EntName="ShadowLegionCloneThree10" parent="RogueBase">
+		<DisplayName>Shadow Legion Clone 3</DisplayName>
+		<DevStatus>Base</DevStatus>
+		<MeleePower>FalseSaberMelee</MeleePower>
+		<Powers>FalseChi</Powers>
+		<Level>25</Level>
+		<EntRank>Pet</EntRank>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.45</ArmorClass>
 		<HitPoints>1.45</HitPoints>
@@ -54687,7 +54917,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1</ArmorClass>
 		<HitPoints>1</HitPoints>
@@ -54710,7 +54940,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1</ArmorClass>
 		<HitPoints>1.15</HitPoints>
@@ -54733,7 +54963,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.15</ArmorClass>
 		<HitPoints>1.15</HitPoints>
@@ -54756,7 +54986,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.15</ArmorClass>
 		<HitPoints>1.15</HitPoints>
@@ -54779,7 +55009,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.15</ArmorClass>
 		<HitPoints>1.3</HitPoints>
@@ -54802,7 +55032,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.3</ArmorClass>
 		<HitPoints>1.3</HitPoints>
@@ -54825,7 +55055,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.3</ArmorClass>
 		<HitPoints>1.3</HitPoints>
@@ -54848,7 +55078,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.3</ArmorClass>
 		<HitPoints>1.45</HitPoints>
@@ -54871,7 +55101,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.45</ArmorClass>
 		<HitPoints>1.45</HitPoints>
@@ -54894,7 +55124,7 @@
 		<Powers>FalseTendrilDash</Powers>
 		<Level>25</Level>
 		<EntRank>Pet</EntRank>
-		<MeleeDamage>0.5</MeleeDamage>
+		<MeleeDamage>0.3</MeleeDamage>
 		<MagicDamage>1</MagicDamage>
 		<ArmorClass>1.45</ArmorClass>
 		<HitPoints>1.45</HitPoints>
@@ -57737,5 +57967,200 @@
 			<ColorSwap2>0xD3FF6F=0xE8F7FF</ColorSwap2>
 			<ColorSwap3>0xec0000=0x2647FF</ColorSwap3>
 		</GfxType>
+	</EntType>
+	<EntType EntName="LegendsInnBoss1" parent="JackalChieftain">
+		<DisplayName>Vehr the Courier</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>6</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss1Hard" parent="JackalChieftainHard">
+		<DisplayName>Vehr the Courier</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>6</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss2" parent="GreaterSkeletonRogue">
+		<DisplayName>Osk the Witness</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>7</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss2Hard" parent="GreaterSkeletonRogueHard">
+		<DisplayName>Osk the Witness</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>7</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss3A" parent="BanditTwinA">
+		<DisplayName>Sarn, the Left Hand</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>8</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss3AHard" parent="BanditTwinAHard">
+		<DisplayName>Sarn, the Left Hand</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>8</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss3B" parent="BanditTwinB">
+		<DisplayName>Vael, the Right Hand</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>8</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss3BHard" parent="BanditTwinBHard">
+		<DisplayName>Vael, the Right Hand</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>8</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss4" parent="MeylourEnthralledRogue">
+		<DisplayName>Elsyn the Bought</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>9</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss4Hard" parent="MeylourEnthralledRogueHard">
+		<DisplayName>Elsyn the Bought</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>9</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss5" parent="ScarabRogue">
+		<DisplayName>Karrog the Forgemaster</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>10</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss5Hard" parent="ScarabRogueHard">
+		<DisplayName>Karrog the Forgemaster</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>10</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss6" parent="SpiritJackalRogue">
+		<DisplayName>Ysel the Keeper</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>11</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss6Hard" parent="SpiritJackalRogueHard">
+		<DisplayName>Ysel the Keeper</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>11</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss7" parent="TowerGuard2">
+		<DisplayName>Arden Hollowhelm</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>12</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss7Hard" parent="TowerGuard2Hard">
+		<DisplayName>Arden Hollowhelm</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>12</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss8" parent="DemonMaligner">
+		<DisplayName>Nekhet the Warden</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>13</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss8Hard" parent="DemonMalignerHard">
+		<DisplayName>Nekhet the Warden</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>13</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss9" parent="GreaterDemonMaligner">
+		<DisplayName>Maugrim, the Last Lock</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>14</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnBoss9Hard" parent="GreaterDemonMalignerHard">
+		<DisplayName>Maugrim, the Last Lock</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
+		<EntRank>Boss</EntRank>
+		<HitPoints>14</HitPoints>
+		<MeleePower>HumanMeleeLR</MeleePower>
+		<Powers>HumanMaceStrike,HumanPoisonStrike,HumanQuickStrike,HumanHawkStrike,HumanStealth,HumanSpinStrike,HumanRapierStrike</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnPortal" parent="Base">
+		<DevStatus>LegendsInn</DevStatus>
+		<Level>0</Level>
+		<GroupLevel>0</GroupLevel>
+		<MeleeDamage>0</MeleeDamage>
+		<MagicDamage>0</MagicDamage>
+		<ArmorClass>0</ArmorClass>
+		<HitPoints>0</HitPoints>
+		<RewardClass>NoLoot</RewardClass>
+		<Realm>Object</Realm>
+		<Speed>0</Speed>
+		<Width>200</Width>
+		<Height>250</Height>
+		<Behavior>NPC</Behavior>
+		<Flying>True</Flying>
+		<EquippedGear/>
+		<GfxType>
+			<AnimClass>a__NephitPortal</AnimClass>
+			<AnimFile>Animation_Nephit.swf</AnimFile>
+			<Shadow>None</Shadow>
+			<AnimScale>1.0</AnimScale>
+		</GfxType>
+	</EntType>
+	<EntType EntName="LegendsInnServant" parent="RageGuardianServant">
+		<DevStatus>LegendsInn</DevStatus>
+		<Powers>LegendsInnServantSummon</Powers>
+	</EntType>
+	<EntType EntName="LegendsInnServantHard" parent="RageGuardianServant">
+		<DevStatus>LegendsInn</DevStatus>
+		<Powers>LegendsInnServantSummon</Powers>
+	</EntType>
+	<EntType EntName="NPCLegendsInnTitus" parent="NPCTitus2">
+		<DisplayName>Titus</DisplayName>
+		<DevStatus>LegendsInn</DevStatus>
 	</EntType>
 </EntTypes>

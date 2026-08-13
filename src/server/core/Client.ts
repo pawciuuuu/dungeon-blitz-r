@@ -28,6 +28,12 @@ export interface PendingLootDrop {
     tier?: number;
     material?: number;
     dye?: number;
+    /**
+     * A consumable the `material` above is only the carrier for. The loot-drop
+     * packet has no consumable slot, so the Legends' Inn chest drops a catalyst as
+     * a rarity-matched material and swaps it back on pickup.
+     */
+    consumable?: number;
     __lootDropMetadata?: {
         lootdropId: number;
         lootDropNonce: string;
@@ -215,6 +221,12 @@ export class Client {
     public dungeonRun: DungeonRunStats | null = null;
     public pendingMissionTurnIns: Set<number> = new Set();
     public authoritativeMaxHp: number = 100;
+    /**
+     * Defense, as the client reports it on packet 0xFC. Zero until the patched client sends
+     * it -- a browser can serve a cached SWF older than the server, so nothing may assume it
+     * is populated.
+     */
+    public authoritativeArmorClass: number = 0;
     /** Last mana the client reported over packet 0xCB. Diagnostic only -- never trusted. */
     public lastReportedMana: number = 0;
     public authoritativeCurrentHp: number = 100;
@@ -486,6 +498,21 @@ export class Client {
         this.deferredCharacterSaveTimer.unref?.();
     }
 
+    public async flushCharacterSave(reason: string): Promise<void> {
+        if (!this.userId || !this.character) {
+            return;
+        }
+
+        this.deferredCharacterSaveGeneration += 1;
+        this.deferredCharacterSaveReason = reason;
+        if (this.deferredCharacterSaveTimer) {
+            clearTimeout(this.deferredCharacterSaveTimer);
+            this.deferredCharacterSaveTimer = null;
+        }
+
+        await this.flushDeferredCharacterSave(reason);
+    }
+
     private async flushDeferredCharacterSave(reason: string): Promise<void> {
         if (this.deferredCharacterSaveInFlight) {
             await this.deferredCharacterSaveInFlight.catch(() => undefined);
@@ -592,6 +619,7 @@ export class Client {
         this.dungeonRun = null;
         this.pendingMissionTurnIns.clear();
         this.authoritativeMaxHp = 100;
+        this.authoritativeArmorClass = 0;
         this.authoritativeCurrentHp = 100;
         this.combatStatsDirty = false;
         this.allowDirtyCombatStatsRegen = false;
