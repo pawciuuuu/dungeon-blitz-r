@@ -29,9 +29,13 @@ import { ensureBackup, parseSwz, writeSwz } from "./swzPatchUtils";
  * Rogue:
  *   Slapdash Decoy     armor bane removed from the explosion
  *
- * Viperblade's Bone Daggers keep their Poison DoT as the discipline's ranged basic attack.
- * The former blanket passive is removed from actual skills: melee skills gain no extra
- * Bleed and ranged skills gain no extra Poison.
+ * Viperblade's Bone Daggers keep a Poison DoT as the discipline's ranged basic attack, and
+ * DaggerFlurry's daggers apply the same ViperbladePoison. Each dagger is its own stacking
+ * instance of the DoT: the dagger count in the buff list is the multiplicity per cast and the
+ * buff's StackCount (16) is how far one instance ramps with repeated hits, so the poison builds
+ * up over a fight instead of landing at full strength (DoTDamage 0.8 per stack per second).
+ * The former blanket passive is removed from actual skills: melee skills gain no extra Bleed
+ * and ranged skills gain no extra Poison.
  *
  * Hemorrhage gets a small defense debuff on top of its damage, which needed checking
  * rather than assuming: PowerModType parses BuffProperty and BuffValue as parallel
@@ -147,10 +151,26 @@ const TARGET_BUFFS = new Map<string, string>([
   ["Reaper8", "ArmorBane"],
   ["Reaper9", "ArmorBane"],
   ["Reaper10", "ArmorBane"],
+  // DaggerFlurry -- one entry per dagger (three through rank 4, four from rank 5); each entry
+  // is one stacking instance of ViperbladePoison, which ramps toward its own StackCount of 16.
+  ["DaggerFlurry", "ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison'
+  ["DaggerFlurry1", "ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison'
+  ["DaggerFlurry2", "ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison'
+  ["DaggerFlurry3", "ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison'
+  ["DaggerFlurry4", "ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison'
+  ["DaggerFlurry5", "ViperbladePoison,ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
+  ["DaggerFlurry6", "ViperbladePoison,ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
+  ["DaggerFlurry7", "ViperbladePoison,ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
+  ["DaggerFlurry8", "ViperbladePoison,ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
+  ["DaggerFlurry9", "ViperbladePoison,ViperbladePoison,ViperbladePoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
+  ["DaggerFlurry10", "ViperbladePoison,ViperbladePoison,ViperbladePoison,ViperbladePoison,ArmorBane"], // was 'DaggerPoison,DaggerPoison,ArmorBane'
 ]);
 
-// Legacy Viperblade payloads. Bone Daggers retain ViperbladePoison; every other entry is
-// migration input used to restore each skill's normal authored/retuned buff list.
+// Legacy Viperblade payloads -- the buff lists this server used to inject. Every entry is
+// migration input used to restore each skill's normal authored/retuned buff list. Viperblade
+// poison is now the Viper's stacking DoT (BuffID 741): Bone Daggers apply one stack per hit.
+// DaggerFlurry's buff lists are fully retuned in TARGET_BUFFS, so it has no legacy payload
+// here -- TARGET_BUFFS replaces the whole AddTargetBuff, so nothing stale can survive there.
 const VIPERBLADE_BUFFS = new Map<string, string>([
   // SeverStrike (Melee) +Bleeding
   ["SeverStrike", "Bleeding,ViperbladeBleed"], // was 'Bleeding'
@@ -248,18 +268,6 @@ const VIPERBLADE_BUFFS = new Map<string, string>([
   ["MistWalkClose8", "Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Intimidate55,ArmorBane,ArmorBane,ViperbladeBleed"], // was 'Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Intimidate55,ArmorBane,ArmorBane'
   ["MistWalkClose9", "Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Intimidate60,ArmorBane,ArmorBane,ViperbladeBleed"], // was 'Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Intimidate60,ArmorBane,ArmorBane'
   ["MistWalkClose10", "Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Intimidate,ArmorBane,ArmorBane,ViperbladeBleed"], // was 'Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Bleeding,Intimidate,ArmorBane,ArmorBane'
-  // DaggerFlurry (RangedAoE) +PoisonStrike
-  ["DaggerFlurry", "DaggerPoison,ViperbladePoison"], // was 'DaggerPoison'
-  ["DaggerFlurry1", "DaggerPoison,ViperbladePoison"], // was 'DaggerPoison'
-  ["DaggerFlurry2", "DaggerPoison,ViperbladePoison"], // was 'DaggerPoison'
-  ["DaggerFlurry3", "DaggerPoison,ViperbladePoison"], // was 'DaggerPoison'
-  ["DaggerFlurry4", "DaggerPoison,ViperbladePoison"], // was 'DaggerPoison'
-  ["DaggerFlurry5", "DaggerPoison,DaggerPoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
-  ["DaggerFlurry6", "DaggerPoison,DaggerPoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
-  ["DaggerFlurry7", "DaggerPoison,DaggerPoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
-  ["DaggerFlurry8", "DaggerPoison,DaggerPoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
-  ["DaggerFlurry9", "DaggerPoison,DaggerPoison,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison'
-  ["DaggerFlurry10", "DaggerPoison,DaggerPoison,ArmorBane,ViperbladePoison"], // was 'DaggerPoison,DaggerPoison,ArmorBane'
   // PoisonDagger (ProjectilePlayer) +PoisonStrike
   ["PoisonDagger", "ViperbladePoison"], // was ''
   ["PoisonDagger1", "ViperbladePoison"], // was ''
@@ -467,6 +475,33 @@ for (const rank of ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]) {
   ]);
 }
 
+// Viperblade poison tooltips. patch_gameswz_power_stat_tooltips regenerates the trailing
+// "[Stats: ...]" block from DoTDamage alone (0.8 damage/s per stack), so the prose is where
+// the real output is said out loud: the poison stacks up to the buff's StackCount. Keep the
+// "16" here in step with VIPERBLADE_POISON_STACK_COUNT.
+for (const rank of ["", "1"]) {
+  DESCRIPTIONS.set(`PoisonDagger${rank}`, [
+    "Ranged basic attacks leave Poison.",
+    "Ranged basic attacks leave Poison that stacks up to 16 times.",
+  ]);
+}
+for (const rank of ["", "1", "2", "3", "4"]) {
+  DESCRIPTIONS.set(`DaggerFlurry${rank}`, [
+    "Throw three Poison Daggers.",
+    "Throw three Poison Daggers that stack Poison up to 16 times.",
+  ]);
+}
+for (const rank of ["5", "6", "7", "8", "9"]) {
+  DESCRIPTIONS.set(`DaggerFlurry${rank}`, [
+    "Throw four Poison Daggers.",
+    "Throw four Poison Daggers that stack Poison up to 16 times.",
+  ]);
+}
+DESCRIPTIONS.set("DaggerFlurry10", [
+  "Throw four Poison Daggers that reduce target Defense.",
+  "Throw four Poison Daggers that reduce target Defense and stack Poison up to 16 times.",
+]);
+
 /**
  * Text that has to move a second time, after an earlier run already rewrote it. Runs before
  * the signature rewrite below, because SIGNATURE_DESCRIPTIONS keys off a prefix of the same
@@ -504,6 +539,15 @@ const TEXT_MIGRATIONS: Array<{ power: RegExp; from: string; to: string }> = [
     power: /^ConcussionBolt\d*$/,
     from: "Sentinel passive: your melee attacks also strike for 0.01% of your maximum Health and 0.1% of your Defense.",
     to: "Sentinel passive: your melee attacks also strike for 0.3% of your maximum Health and 30% of your Defense.",
+  },
+  {
+    // The Viperblade poison cap moved from 8 to 16 (DoTDamage halved to 0.5 to match), and
+    // the prose quoting the old cap was already rewritten once, so the DESCRIPTIONS entries
+    // below no longer match it. Rewrite the current wording instead. Covers the Description
+    // and the DaggerFlurry rank-1 UpgradeDescription alike.
+    power: /^(PoisonDagger|DaggerFlurry)\d*$/,
+    from: " up to 8 times.",
+    to: " up to 16 times.",
   },
 ];
 
@@ -670,6 +714,29 @@ const GHOST_BLADE_EXPERTISE = new Map<string, string>([
 ]);
 
 const VIPERBLADE_BASIC_RANGED = new Set(["PoisonDagger", "PoisonDagger1"]);
+// Powers that are meant to apply ViperbladePoison: the Viperblade basic ranged attacks plus
+// DaggerFlurry (whose retuned buff lists live in TARGET_BUFFS). Everything else strips it.
+const VIPERBLADE_POISON_POWERS = new Set([
+  ...VIPERBLADE_BASIC_RANGED,
+  "DaggerFlurry",
+  ...Array.from({ length: 10 }, (_, i) => `DaggerFlurry${i + 1}`),
+]);
+// The two numbers the Viperblade poison is tuned with, in one place: the BuffType below is
+// built from them and patchPlayerBuffs re-asserts them, so the served archive cannot drift
+// from the authored values. DoTDamage is per tick (1000ms), so it is also per stack per
+// second. StackCount is the cap one instance ramps to with repeated hits: the poison stacks
+// up instead of refreshing, and a single hit never reaches the cap.
+//
+// Sizing, against a normal-dungeon enemy (~200K HP) with the ~109 Attack the old 35k
+// measurement implies (5s x 64 stacks x 1 damage x Attack): the old 8 x 1 design ramped one
+// Bone Dagger's instance to 8 stacks (~4.4K over 5s) and a four-dagger DaggerFlurry's four
+// instances to 8 stacks each (~17.5K over 5s), while the 16-cap at 1 damage dealt ~35K.
+// With the cap at 16, DoTDamage 0.8 puts the fully-ramped peak at 12.8 damage/s -- 60% above
+// the old 8 x 1 peak of 8 damage/s -- and the ramp still takes 16 hits to reach it, so burst
+// over a short fight climbs more slowly but out-trades the old poison once stacked. The
+// tooltip prose quoting the cap (see DESCRIPTIONS) has to move in step.
+const VIPERBLADE_POISON_DOT_DAMAGE = "0.8";
+const VIPERBLADE_POISON_STACK_COUNT = "16";
 const VIPERBLADE_POISON_BUFF = {
   name: "ViperbladePoison",
   xml: [
@@ -677,10 +744,10 @@ const VIPERBLADE_POISON_BUFF = {
     "\t\t<BuffID>741</BuffID>",
     "\t\t<Attack>true</Attack>",
     "\t\t<Duration>5000</Duration>",
-    "\t\t<DoTDamage>1.5</DoTDamage>",
+    `\t\t<DoTDamage>${VIPERBLADE_POISON_DOT_DAMAGE}</DoTDamage>`,
     "\t\t<DoTTickLength>1000</DoTTickLength>",
     "\t\t<Effect>Poisoned</Effect>",
-    "\t\t<StackCount>1</StackCount>",
+    `\t\t<StackCount>${VIPERBLADE_POISON_STACK_COUNT}</StackCount>`,
     "\t\t<BuffLoc>Head</BuffLoc>",
     "\t\t<BuffIcon>a_StatusIcon_Poisoned</BuffIcon>",
     "\t</BuffType>",
@@ -873,7 +940,7 @@ export function patchPlayerPowers(xml: string): { xml: string; stats: PatchStats
           .split(",")
           .filter((entry) => {
             if (entry === "ViperbladeBleed") return false;
-            if (entry === "ViperbladePoison" && !VIPERBLADE_BASIC_RANGED.has(powerName)) return false;
+            if (entry === "ViperbladePoison" && !VIPERBLADE_POISON_POWERS.has(powerName)) return false;
             return true;
           })
           .join(",");
@@ -1000,6 +1067,12 @@ export function patchPlayerBuffs(xml: string): { xml: string; stats: PatchStats 
           return `<MagicDamage>${expertise}</MagicDamage>\r\n\t\t${match}`;
         });
       }
+    }
+
+    if (buffName === "ViperbladePoison") {
+      touched = true;
+      next = replaceTag(next, "DoTDamage", VIPERBLADE_POISON_DOT_DAMAGE, stats);
+      next = replaceTag(next, "StackCount", VIPERBLADE_POISON_STACK_COUNT, stats);
     }
 
     if (touched) {

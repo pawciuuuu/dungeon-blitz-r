@@ -3,20 +3,19 @@ import * as path from "path";
 import { ensureBackup, parseSwz, SwzPatchError, writeSwz } from "./swzPatchUtils";
 
 /**
- * Replaces the three CraftTown (home) training dummies with boss look-alikes.
+ * Restores the three CraftTown (home) training dummies to their original decoy look.
  *
- * The dummies are placed by the home level SWF and referenced by EntName, so the
- * placement is kept: only the identity/appearance of HomeDummy1..3 is rewritten.
- * Behavior (HomeDummy), hit points, NoLoot and Speed 0 stay untouched so they
- * still behave as immortal practice targets.
+ * An earlier iteration of this patch rewrote HomeDummy1..3 into Dread boss look-alikes (Dread
+ * Lotte / Dread Prince Friedrich Hocke / Dread Tanja) so the home garden read as an enemy lineup.
+ * This iteration does the opposite: it rewrites the same three entries back to the plain
+ * `a__TrainingDummyAnimation` decoys ("Ev Dummy 1/2/3") from Animation_Environmentals.swf.
  *
- * The Dread (Hard-mode) art sets are used, so the home dummies match what the
- * bosses look like inside Dread The West Wing / Dread Valhaven / Dread The East
- * Wing rather than their normal-difficulty appearance.
+ * The dummies are placed by the home level SWF and referenced by EntName, so the placement is
+ * kept: only the identity/appearance of HomeDummy1..3 is rewritten. Behavior (HomeDummy), hit
+ * points, NoLoot and Speed 0 stay untouched so they still behave as immortal practice targets.
  *
- *   HomeDummy1 -> Dread Lotte, The 1st Daughter (TowerGuard1Hard, PaladinBase)
- *   HomeDummy2 -> Dread Prince Friedrich Hocke  (DefectorMageHard, MageBase)
- *   HomeDummy3 -> Dread Tanja, The 2nd Daughter (TowerGuard2Hard, RogueBase)
+ * The patch name (`patch:home-dummy-bosses`) is kept so the prebuild pipeline and
+ * `verify:client-patches` keep running the same step; its effect is now "dummies stay decoys".
  */
 
 type DummyBossDef = {
@@ -25,107 +24,52 @@ type DummyBossDef = {
   displayName: string;
   width: string;
   height: string;
-  genderFix?: string;
-  soundDeathRattle?: string;
-  soundHitGrunt?: string;
-  soundBloodied?: string;
   gfx: string[];
 };
 
-const DUMMY_BOSSES: DummyBossDef[] = [
+const ORIGINAL_DUMMIES: DummyBossDef[] = [
   {
     entName: "HomeDummy1",
-    parent: "PaladinBase",
-    displayName: "Dread Lotte, The 1st Daughter",
-    width: "130",
-    height: "185",
-    genderFix: "Female",
-    soundDeathRattle: "snd_hurt_mage_03",
-    soundHitGrunt: "snd_hurt_mage_01|snd_hurt_mage_02|snd_hurt_mage_03|snd_silence|snd_silence|snd_silence",
-    soundBloodied: "snd_hurt_mage_02",
+    parent: "Base",
+    displayName: "Ev Dummy 1",
+    width: "60",
+    height: "200",
     gfx: [
-      "<AnimScale>1.25</AnimScale>",
-      "<MoveAnimSpeed>.7</MoveAnimSpeed>",
-      "<CustomArt>Gfx_Paladin_1.swf/Null</CustomArt>",
-      "<CustomArt2>Gfx_Paladin_1.swf/Female</CustomArt2>",
-      "<CustomArt3>Gfx_Paladin_1.swf/TowerGuard</CustomArt3>",
-      "<CustomArt4>Gfx_Paladin_1.swf/ArmorRegal</CustomArt4>",
-      "<CustomArt5>Gfx_Paladin_1.swf/ArmorRegalFemale</CustomArt5>",
-      "<CustomArt6>Gfx_Paladin_1.swf/FlapBig</CustomArt6>",
-      "<CustomArt7>Gfx_Paladin_1.swf/BootHunter</CustomArt7>",
-      "<CustomArt8>Gfx_Paladin_1.swf/GloveHunter</CustomArt8>",
-      "<CustomArt9>Gfx_Paladin_1.swf/ShieldShaziri</CustomArt9>",
-      "<CustomArt10>Gfx_Paladin_1.swf/SwordJester</CustomArt10>",
-      "<CustomArt11>Gfx_Paladin_1.swf/FootBaseHeavy</CustomArt11>",
-      "<ColorSwap>0xD0F0F0=0x6C8AFF</ColorSwap>",
-      "<ColorSwap2>0x80C0F0=0x33FF</ColorSwap2>",
-      "<ColorSwap3>0x0070E0=0x1F36A7</ColorSwap3>",
-      "<ColorSwap4>0xFF9999=0x5C5C4E</ColorSwap4>",
-      "<ColorSwap5>0xB00000=0x2C2C25</ColorSwap5>",
-      "<ColorSwap6>0x600000=0x1A1A15</ColorSwap6>",
-      "<ColorSwap7>0x86501A=0x3E484A</ColorSwap7>",
-      "<ColorSwap8>0x8B6936=0x305759</ColorSwap8>",
-      "<ColorSwap9>0x590000=0x2C2C25</ColorSwap9>",
-      "<ColorSwap10>0x3C0000=0x1A1A15</ColorSwap10>"
+      "<AnimClass>a__TrainingDummyAnimation</AnimClass>",
+      "<AnimFile>Animation_Environmentals.swf</AnimFile>",
+      "<FlipAnim>TRUE</FlipAnim>",
+      "<AnimScale>0.8</AnimScale>",
+      "<MoveAnimSpeed>1</MoveAnimSpeed>"
     ]
   },
   {
     entName: "HomeDummy2",
-    parent: "MageBase",
-    displayName: "Dread Prince Friedrich Hocke",
-    width: "80",
-    height: "160",
-    genderFix: "Male",
-    soundHitGrunt: "snd_hurt_paladin_01|snd_hurt_paladin_02|snd_hurt_paladin_03|snd_silence|snd_silence|snd_silence",
-    soundBloodied: "snd_hurt_paladin_01|snd_hurt_paladin_02|snd_hurt_paladin_03|snd_silence|snd_silence|snd_silence",
+    parent: "Base",
+    displayName: "Ev Dummy 2",
+    width: "60",
+    height: "200",
     gfx: [
-      "<AnimScale>1.2</AnimScale>",
-      "<CustomArt>Gfx_Mage_1.swf/Null</CustomArt>",
-      "<CustomArt2>Gfx_Mage_1.swf/Male</CustomArt2>",
-      "<CustomArt3>Gfx_Mage_1.swf/SlyDread</CustomArt3>",
-      "<CustomArt4>Gfx_Mage_1.swf/DressJester</CustomArt4>",
-      "<CustomArt5>Gfx_Mage_1.swf/DressJesterMale</CustomArt5>",
-      "<CustomArt6>Gfx_Mage_1.swf/GlovesImperial</CustomArt6>",
-      "<CustomArt7>Gfx_Mage_1.swf/ShoulderJester</CustomArt7>",
-      "<CustomArt8>Gfx_Mage_1.swf/BootsImperial</CustomArt8>",
-      "<CustomArt9>Gfx_Mage_1.swf/FocusJester</CustomArt9>",
-      "<CustomArt10>Gfx_Mage_1.swf/StaffJester3</CustomArt10>",
-      "<CustomArt11>Gfx_Mage_1.swf/HandInsect</CustomArt11>",
-      "<ColorSwap>0xD0F0F0=0xD5F0E4</ColorSwap>",
-      "<ColorSwap2>0x80C0F0=0xA4D3BF</ColorSwap2>",
-      "<ColorSwap3>0x0070E0=0x7EA998</ColorSwap3>",
-      "<ColorSwap4>0xFF9999=0x28404D</ColorSwap4>",
-      "<ColorSwap5>0xB00000=0xF181D</ColorSwap5>",
-      "<ColorSwap6>0x600000=0x50A0C</ColorSwap6>"
+      "<AnimClass>a__TrainingDummyAnimation</AnimClass>",
+      "<AnimFile>Animation_Environmentals.swf</AnimFile>",
+      "<FlipAnim>TRUE</FlipAnim>",
+      "<AnimScale>0.8</AnimScale>",
+      "<MoveAnimSpeed>1</MoveAnimSpeed>",
+      "<CustomArt>Animation_Environmentals.swf/Alt1</CustomArt>"
     ]
   },
   {
     entName: "HomeDummy3",
-    parent: "RogueBase",
-    displayName: "Dread Tanja, The 2nd Daughter",
-    width: "90",
-    height: "140",
-    soundDeathRattle: "snd_hurt_mage_03",
-    soundHitGrunt: "snd_hurt_mage_01|snd_hurt_mage_02|snd_hurt_mage_03|snd_silence|snd_silence|snd_silence",
-    soundBloodied: "snd_hurt_mage_02",
+    parent: "Base",
+    displayName: "Ev Dummy 3",
+    width: "60",
+    height: "200",
     gfx: [
-      "<AnimScale>1.25</AnimScale>",
-      "<MoveAnimSpeed>.8</MoveAnimSpeed>",
-      "<CustomArt>Gfx_Rogue_1.swf/Null</CustomArt>",
-      "<CustomArt2>Animation_Rogue.swf/Female</CustomArt2>",
-      "<CustomArt3>Gfx_Rogue_1.swf/TowerGuardHorn</CustomArt3>",
-      "<CustomArt4>Gfx_Rogue_1.swf/SashRegal</CustomArt4>",
-      "<CustomArt5>Gfx_Rogue_1.swf/GloveHunter</CustomArt5>",
-      "<CustomArt6>Gfx_Rogue_1.swf/BootFootOni</CustomArt6>",
-      "<CustomArt7>Gfx_Rogue_1.swf/GloveStudded</CustomArt7>",
-      "<CustomArt8>Gfx_Paladin_1.swf/RapierOni</CustomArt8>",
-      "<CustomArt9>Gfx_Paladin_1.swf/OffhandOni</CustomArt9>",
-      "<ColorSwap>0xD0F0F0=0x6FBAFF</ColorSwap>",
-      "<ColorSwap2>0x80C0F0=0x84FF</ColorSwap2>",
-      "<ColorSwap3>0x0070E0=0x1463A3</ColorSwap3>",
-      "<ColorSwap4>0xFF9999=0x8A7C79</ColorSwap4>",
-      "<ColorSwap5>0xB00000=0x594F4D</ColorSwap5>",
-      "<ColorSwap6>0x600000=0x393331</ColorSwap6>"
+      "<AnimClass>a__TrainingDummyAnimation</AnimClass>",
+      "<AnimFile>Animation_Environmentals.swf</AnimFile>",
+      "<FlipAnim>TRUE</FlipAnim>",
+      "<AnimScale>0.8</AnimScale>",
+      "<MoveAnimSpeed>1</MoveAnimSpeed>",
+      "<CustomArt>Animation_Environmentals.swf/Alt2</CustomArt>"
     ]
   }
 ];
@@ -154,18 +98,6 @@ function buildEntTypeBlock(def: DummyBossDef): string {
   lines.push("\t\t<Speed>0</Speed>");
   lines.push(`\t\t<Width>${def.width}</Width>`);
   lines.push(`\t\t<Height>${def.height}</Height>`);
-  if (def.genderFix) {
-    lines.push(`\t\t<GenderFix>${def.genderFix}</GenderFix>`);
-  }
-  if (def.soundDeathRattle) {
-    lines.push(`\t\t<SoundDeathRattle>${def.soundDeathRattle}</SoundDeathRattle>`);
-  }
-  if (def.soundHitGrunt) {
-    lines.push(`\t\t<SoundHitGrunt>${def.soundHitGrunt}</SoundHitGrunt>`);
-  }
-  if (def.soundBloodied) {
-    lines.push(`\t\t<SoundBloodied>${def.soundBloodied}</SoundBloodied>`);
-  }
   lines.push("\t\t<Behavior>HomeDummy</Behavior>");
   lines.push("\t\t<EquippedGear/>");
   lines.push("\t\t<GfxType>");
@@ -182,7 +114,7 @@ export function patchHomeDummyBossXml(xml: string): { xml: string; stats: DummyB
   let verified = 0;
   let patchedXml = xml;
 
-  for (const def of DUMMY_BOSSES) {
+  for (const def of ORIGINAL_DUMMIES) {
     const blockPattern = new RegExp(`<EntType EntName="${def.entName}"[^>]*>[\\s\\S]*?<\\/EntType>`);
     const target = buildEntTypeBlock(def);
     let matched = false;
@@ -204,8 +136,8 @@ export function patchHomeDummyBossXml(xml: string): { xml: string; stats: DummyB
 
 function assertHomeDummyBossXml(xml: string, label: string): DummyBossStats {
   const patched = patchHomeDummyBossXml(xml);
-  if (patched.stats.verified !== DUMMY_BOSSES.length || patched.stats.updated !== 0) {
-    throw new SwzPatchError(`${label} HomeDummy boss appearances are not applied`);
+  if (patched.stats.verified !== ORIGINAL_DUMMIES.length || patched.stats.updated !== 0) {
+    throw new SwzPatchError(`${label} HomeDummy decoy appearances are not applied`);
   }
   return patched.stats;
 }
@@ -295,7 +227,7 @@ function patchServerJson(jsonPath: string, verifyOnly: boolean): DummyBossStats 
   let updated = 0;
   let verified = 0;
 
-  for (const def of DUMMY_BOSSES) {
+  for (const def of ORIGINAL_DUMMIES) {
     const entry = entTypes.find((candidate: { EntName?: string }) => candidate.EntName === def.entName);
     if (!entry) {
       throw new SwzPatchError(`server JSON missing ${def.entName}`);
@@ -304,13 +236,10 @@ function patchServerJson(jsonPath: string, verifyOnly: boolean): DummyBossStats 
 
     const desired: Record<string, string> = {
       parent: def.parent,
-      DisplayName: def.displayName,
+      DisplayName: "Training Dummy",
       Width: def.width,
       Height: def.height
     };
-    if (def.genderFix) {
-      desired.GenderFix = def.genderFix;
-    }
 
     for (const [key, value] of Object.entries(desired)) {
       if (entry[key] !== value) {
@@ -318,16 +247,26 @@ function patchServerJson(jsonPath: string, verifyOnly: boolean): DummyBossStats 
         entry[key] = value;
       }
     }
+
+    // Drop the boss-look fields the previous iteration added (gender fix, sounds); the original
+    // decoys carry none of them.
+    for (const key of ["GenderFix", "SoundDeathRattle", "SoundHitGrunt", "SoundBloodied"]) {
+      if (key in entry) {
+        updated += 1;
+        delete entry[key];
+      }
+    }
+
     if (entry.HitPoints !== DUMMY_HIT_POINTS || entry.Behavior !== "HomeDummy") {
       throw new SwzPatchError(`server JSON ${def.entName} lost its dummy behavior`);
     }
   }
 
   if (verifyOnly && updated !== 0) {
-    throw new SwzPatchError("server JSON HomeDummy boss appearances are not applied");
+    throw new SwzPatchError("server JSON HomeDummy decoy appearances are not applied");
   }
   if (!verifyOnly && updated !== 0) {
-    fs.writeFileSync(jsonPath, `${hasBom ? "﻿" : ""}${JSON.stringify(data, null, 2)}\n`, "utf8");
+    fs.writeFileSync(jsonPath, `${hasBom ? "\ufeff" : ""}${JSON.stringify(data, null, 2)}\n`, "utf8");
   }
   return { updated: verifyOnly ? 0 : updated, verified };
 }

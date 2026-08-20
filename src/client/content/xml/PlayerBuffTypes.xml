@@ -5841,10 +5841,10 @@
 			<BuffID>741</BuffID>
 			<Attack>true</Attack>
 			<Duration>5000</Duration>
-			<DoTDamage>1.5</DoTDamage>
+			<DoTDamage>0.8</DoTDamage>
 			<DoTTickLength>1000</DoTTickLength>
 			<Effect>Poisoned</Effect>
-			<StackCount>1</StackCount>
+			<StackCount>16</StackCount>
 			<BuffLoc>Head</BuffLoc>
 			<BuffIcon>a_StatusIcon_Poisoned</BuffIcon>
 		</BuffType>
@@ -5857,4 +5857,17 @@
 			<EntTint>0xFF3030</EntTint>
 			<GfxType/>
 		</BuffType>
+	<BuffType BuffName="PetArmorBane">
+		<BuffID>748</BuffID>
+		<Attack>true</Attack>
+		<Duration>5000</Duration>
+		<StackCount>1</StackCount>
+		<BuffLoc>Head</BuffLoc>
+		<BuffIcon>a_StatusIcon_DefenseDown</BuffIcon>
+		<GfxType>
+			<AnimScale>0.5</AnimScale>
+			<AnimFile>SFX_1.swf</AnimFile>
+			<AnimClass>a_Debuff_Armor</AnimClass>
+		</GfxType>
+	</BuffType>
 </PlayerBuffTypes>

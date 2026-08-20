@@ -54,6 +54,8 @@ export interface EntityProps {
     
     // Player specific
     class?: string;
+    guildName?: string;
+    guildRank?: number;
     gender?: string;
     headSet?: string;
     hairSet?: string;
@@ -118,6 +120,9 @@ export class Entity {
 
         // Player specific fields
         ent.class = char.class || "";
+        const guild = char.guild || {};
+        ent.guildName = String(guild.name ?? '');
+        ent.guildRank = Number(guild.rank ?? 0);
         ent.gender = normalizeGender(char.gender || "");
         ent.headSet = char.headSet || "";
         ent.hairSet = char.hairSet || "";
@@ -383,6 +388,19 @@ export class Entity {
                          bb.writeFloat(v);
                     }
                 }
+            }
+        }
+
+        // Guild (players only, appended after buffs so older clients that do not read
+        // it are unaffected). The patched client reads this trailing block in
+        // LinkUpdater.method_1615 and renders the guild name under the character name.
+        if (entity.isPlayer) {
+            const guildName = String(entity.guildName ?? '');
+            const hasGuild = guildName.length > 0;
+            bb.writeMethod6(hasGuild ? 1 : 0, 1);
+            if (hasGuild) {
+                bb.writeMethod13(guildName);
+                bb.writeMethod6(Number(entity.guildRank ?? 0), 3);
             }
         }
 

@@ -5693,6 +5693,34 @@ export class LevelHandler {
 
         targetLevel = LevelHandler.resolveKeepTutorialTransferTarget(client, targetLevel);
 
+        // The house has no dungeon doors: from CraftTown (or the keep tutorial) the only exits
+        // are the keep gate back to the region the player came from and the Legends' Inn
+        // portal. A transfer request naming a dungeon while inside the house can only be stale
+        // state -- a remembered door target or a replayed level name -- and honoring it is
+        // what sent players back into the last dungeon they had been in after returning from
+        // the house (or refreshing inside it). Route the request to the safe return level
+        // instead. Explicit server-side teleports (pendingTeleports) are left alone: they
+        // carry their own coordinates and may legitimately target a friend who is still
+        // inside a dungeon.
+        const houseSourceLevel = LevelConfig.normalizeLevelName(client.currentLevel);
+        if (
+            !teleportOverride &&
+            (houseSourceLevel === 'CraftTown' || houseSourceLevel === 'CraftTownTutorial') &&
+            LevelConfig.isDungeonLevel(targetLevel) &&
+            !LegendsInn.isStageLevel(targetLevel)
+        ) {
+            const safeReturnLevel = LevelHandler.resolveCraftTownReturnLevel(
+                client,
+                client.character,
+                houseSourceLevel,
+                null
+            );
+            console.log(
+                `[Level] Refusing stale dungeon transfer '${targetLevel}' from ${houseSourceLevel}; returning to ${safeReturnLevel}`
+            );
+            targetLevel = safeReturnLevel;
+        }
+
         if (!LevelConfig.has(targetLevel)) {
             const safeFallback = LevelConfig.normalizeLevelName(client.currentLevel || "NewbieRoad") || "NewbieRoad";
             console.log(`[Level] Unresolved transfer target '${targetLevel}', staying in ${safeFallback}`);
@@ -6129,12 +6157,6 @@ export class LevelHandler {
         }
         if (canonicalTerminal) {
             const { CombatHandler } = require('./CombatHandler') as typeof import('./CombatHandler');
-            CombatHandler.markRawHostileDefeated(
-                client,
-                getClientLevelScope(client),
-                rawEntityId,
-                canonicalEntity
-            );
             if (
                 isDefeatEntState &&
                 !Boolean(ent.questDefeatProcessed) &&
@@ -6399,12 +6421,6 @@ export class LevelHandler {
         }
         if (isEnemyEntity && isDefeatEntState) {
             const { CombatHandler } = require('./CombatHandler') as typeof import('./CombatHandler');
-            CombatHandler.markRawHostileDefeated(
-                client,
-                getClientLevelScope(client),
-                rawEntityId,
-                levelEntity ?? ent
-            );
             const contributionSnapshot = CombatHandler.getContributionSnapshot(getClientLevelScope(client), entityId);
             if (contributionSnapshot.contributors.length) {
                 ent.clientDefeatVerified = true;
@@ -6434,12 +6450,6 @@ export class LevelHandler {
         ent.x += deltaX;
         ent.y += deltaY;
         ent.v = Number(ent.v ?? 0) + deltaVX;
-        // Preserve which raw client entity is actually participating in the live simulation.
-        // Server-authored duplicate proxies can remain parked at their spawn coordinates and must
-        // not be mistaken for the current position of a moving dungeon hostile.
-        ent.lastClientMovementAt = Date.now();
-        ent.lastClientMovementRawId = rawEntityId;
-        ent.clientMovementReportCount = Math.max(0, Math.round(Number(ent.clientMovementReportCount ?? 0))) + 1;
         ent.entState = canonicalEntState;
         ent.dead = canonicalIsDefeatState ? true : isActiveSelfState ? false : Boolean(ent.dead);
         ent.facingLeft = flags.bLeft;
@@ -6473,12 +6483,6 @@ export class LevelHandler {
             levelEntity.x = ent.x;
             levelEntity.y = ent.y;
             levelEntity.v = ent.v;
-            levelEntity.lastClientMovementAt = ent.lastClientMovementAt;
-            levelEntity.lastClientMovementRawId = rawEntityId;
-            levelEntity.clientMovementReportCount = Math.max(
-                Math.round(Number(levelEntity.clientMovementReportCount ?? 0)),
-                ent.clientMovementReportCount
-            );
             levelEntity.entState = canonicalEntState;
             levelEntity.dead = canonicalIsDefeatState ? true : isActiveSelfState ? false : Boolean(levelEntity.dead);
             levelEntity.facingLeft = flags.bLeft;

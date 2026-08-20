@@ -20,3 +20,5 @@ src/server/.discord-social-channel-link.json
 src/server/native_bridge/build/
 src/server/native_bridge/discord_social_sdk/
 .swf..bak
+.freebuff/
+src/server/data/*.ndjson

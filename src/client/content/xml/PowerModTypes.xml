@@ -9630,4 +9630,15 @@
 		<BuffValue>.05,.05</BuffValue>
 		<IconName>a_Signet_Empty</IconName>
 	</PowerModType>
+	<PowerModType>
+		<ModName>PetArmorBane1</ModName>
+		<ModID>1100</ModID>
+		<DisplayName>Pet Armor Bane</DisplayName>
+		<Description>Pet attacks shred enemy armor</Description>
+		<ModType>Buff</ModType>
+		<BuffName>PetArmorBane</BuffName>
+		<BuffProperty>MeleeDefense,MagicDefense</BuffProperty>
+		<BuffValue>0,0</BuffValue>
+		<IconName>a_Signet_ArmorDmg01</IconName>
+	</PowerModType>
 </PowerModTypes>

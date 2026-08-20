@@ -788,6 +788,15 @@ export class ForgeHandler {
             return;
         }
 
+        // Already finished (ReadyTime was reset by an earlier finalize, e.g. the
+        // completion timer fired while the client missed the result packet). The
+        // charm is waiting to be claimed; deliver the ready state so the claim
+        // screen appears instead of refusing a "Free Speed Up" for 0s left.
+        if (Number(forgeState.ReadyTime ?? 0) <= 0) {
+            ForgeHandler.sendForgeResultPacket(client, forgeState);
+            return;
+        }
+
         const primary = Number(forgeState.primary ?? 0);
         const isRespecStone = primary === CharmID.RespecStone;
         const authoritativeCost = SpeedupPricing.reconcile(forgeState.ReadyTime, idolCost, ForgeHandler.getNowSeconds());

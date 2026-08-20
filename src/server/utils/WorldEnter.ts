@@ -531,7 +531,8 @@ export class WorldEnter {
         newX: number = 0,
         newY: number = 0,
         newHasCoord: boolean = false,
-        sendExtended: boolean = false
+        sendExtended: boolean = false,
+        friendsCharacter: Character | null = null
     ): BitBuffer {
         const bb = new BitBuffer();
         const now = Math.floor(Date.now() / 1000);
@@ -762,29 +763,31 @@ export class WorldEnter {
                 WorldEnter.writeMissionState(bb, missionDef, missionState);
             }
 
-            const friends = normalizeFriendEntries(character.friends);
+            // Friendships are account-level: the list lives on the account's primary
+            // character (first character created), and a friend online as a different
+            // character of the same account still shows under their primary name with
+            // the current character as the display name.
+            const friendsSource = friendsCharacter ?? character;
+            const friends = normalizeFriendEntries(friendsSource.friends);
             bb.writeMethod4(friends.length);
             for (const friend of friends) {
                 const friendName = sanitizeSocialText(friend.name, 'Unknown');
                 const isRequest = Boolean(friend.isRequest);
-                let isOnline = false;
-                let className = '';
-                let level = 1;
-
-                const session = GlobalState.getActiveSessionByCharacterName(friendName);
-                if (session?.character) {
-                    isOnline = true;
-                    className = String(session.character.class ?? '');
-                    level = clampSocialLevel(session.character.level);
-                }
+                const session = GlobalState.getActiveSessionForAccount(friendName);
+                const isOnline = Boolean(session?.character);
 
                 bb.writeMethod13(friendName);
                 bb.writeMethod11(isRequest ? 1 : 0, 1);
                 bb.writeMethod11(isOnline ? 1 : 0, 1);
-                if (isOnline) {
-                    bb.writeMethod11(0, 1);
-                    bb.writeMethod11(WorldEnter.getClassId(className), 2);
-                    bb.writeMethod11(level, 6);
+                if (isOnline && session?.character) {
+                    const displayName = sanitizeSocialText(session.character.name, friendName);
+                    const hasCustomCharacterName = displayName !== friendName;
+                    bb.writeMethod11(hasCustomCharacterName ? 1 : 0, 1);
+                    if (hasCustomCharacterName) {
+                        bb.writeMethod13(displayName);
+                    }
+                    bb.writeMethod11(WorldEnter.getClassId(String(session.character.class ?? '')), 2);
+                    bb.writeMethod11(clampSocialLevel(session.character.level), 6);
                 }
             }
 
@@ -997,8 +1000,12 @@ export class WorldEnter {
 
             for (const rawMember of onlineMembers) {
                 const member = WorldEnter.asRecord(rawMember);
+                // Saves written before the online flag existed only ever stored online
+                // members, so a missing flag means the member was online.
+                const online = typeof member.online === 'boolean' ? member.online : true;
+                bb.writeMethod11(online ? 1 : 0, 1);
                 bb.writeMethod13(String(member.name ?? ''));
-                bb.writeMethod6(Number(member.classID ?? 0), 2);
+                bb.writeMethod6(Number(member.classId ?? 0), 2);
                 bb.writeMethod6(Number(member.level ?? 1), 6);
                 bb.writeMethod6(Number(member.rank ?? 0), 3);
             }

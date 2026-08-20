@@ -36685,8 +36685,8 @@
       },
       {
         "EntName": "HomeDummy1",
-        "parent": "PaladinBase",
-        "DisplayName": "Dread Lotte, The 1st Daughter",
+        "parent": "Base",
+        "DisplayName": "Training Dummy",
         "DevStatus": "New House",
         "Level": "1",
         "GroupLevel": "1",
@@ -36698,15 +36698,14 @@
         "RewardClass": "NoLoot",
         "Realm": "Object",
         "Speed": "0",
-        "Width": "130",
-        "Height": "185",
-        "Behavior": "HomeDummy",
-        "GenderFix": "Female"
+        "Width": "60",
+        "Height": "200",
+        "Behavior": "HomeDummy"
       },
       {
         "EntName": "HomeDummy2",
-        "parent": "MageBase",
-        "DisplayName": "Dread Prince Friedrich Hocke",
+        "parent": "Base",
+        "DisplayName": "Training Dummy",
         "DevStatus": "New House",
         "Level": "1",
         "GroupLevel": "1",
@@ -36718,15 +36717,14 @@
         "RewardClass": "NoLoot",
         "Realm": "Object",
         "Speed": "0",
-        "Width": "80",
-        "Height": "160",
-        "Behavior": "HomeDummy",
-        "GenderFix": "Male"
+        "Width": "60",
+        "Height": "200",
+        "Behavior": "HomeDummy"
       },
       {
         "EntName": "HomeDummy3",
-        "parent": "RogueBase",
-        "DisplayName": "Dread Tanja, The 2nd Daughter",
+        "parent": "Base",
+        "DisplayName": "Training Dummy",
         "DevStatus": "New House",
         "Level": "1",
         "GroupLevel": "1",
@@ -36738,8 +36736,8 @@
         "RewardClass": "NoLoot",
         "Realm": "Object",
         "Speed": "0",
-        "Width": "90",
-        "Height": "140",
+        "Width": "60",
+        "Height": "200",
         "Behavior": "HomeDummy"
       },
       {

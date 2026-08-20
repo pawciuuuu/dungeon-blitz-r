@@ -15,11 +15,12 @@ interface LoadedCharacterRecord {
     character: Character;
 }
 
-interface OnlineGuildMember {
+interface GuildMemberSummary {
     name: string;
     classId: number;
     level: number;
     rank: number;
+    online: boolean;
 }
 
 interface PendingGuildInvite {
@@ -270,24 +271,28 @@ export class GuildHandler {
         return members;
     }
 
-    private static buildOnlineMemberSummaries(members: LoadedCharacterRecord[]): OnlineGuildMember[] {
-        const onlineMembers: OnlineGuildMember[] = [];
+    private static buildMemberSummaries(members: LoadedCharacterRecord[]): GuildMemberSummary[] {
+        const summaries: GuildMemberSummary[] = [];
 
         for (const record of members) {
             const session = GuildHandler.getOnlineSession(record.character.name);
-            if (!session?.character) {
-                continue;
-            }
+            const source = session?.character ?? record.character;
 
-            onlineMembers.push({
-                name: session.character.name,
-                classId: GuildHandler.classIdFromName(session.character.class),
-                level: Math.max(1, Math.min(Number(session.character.level ?? 1), 63)),
-                rank: GuildHandler.getGuildRank(session.character)
+            summaries.push({
+                name: String(source.name ?? ''),
+                classId: GuildHandler.classIdFromName(source.class),
+                level: Math.max(1, Math.min(Number(source.level ?? 1), 63)),
+                rank: GuildHandler.getGuildRank(source),
+                online: Boolean(session?.character)
             });
         }
 
-        onlineMembers.sort((left, right) => {
+        // Online members first, then offline, each group ordered by rank then name.
+        summaries.sort((left, right) => {
+            if (left.online !== right.online) {
+                return left.online ? -1 : 1;
+            }
+
             const rankDiff = left.rank - right.rank;
             if (rankDiff !== 0) {
                 return rankDiff;
@@ -296,19 +301,20 @@ export class GuildHandler {
             return left.name.localeCompare(right.name);
         });
 
-        return onlineMembers;
+        return summaries;
     }
 
-    private static buildGuildUpdatePayload(guildName: string, ownRank: number, onlineMembers: OnlineGuildMember[], selfName: string): Buffer {
+    private static buildGuildUpdatePayload(guildName: string, ownRank: number, members: GuildMemberSummary[], selfName: string): Buffer {
         const bb = new BitBuffer(false);
 
         bb.writeMethod15(true);
         bb.writeMethod13(guildName);
         bb.writeMethod6(ownRank, 3);
 
-        const others = onlineMembers.filter((member) => normalizeCharacterKey(member.name) !== normalizeCharacterKey(selfName));
+        const others = members.filter((member) => normalizeCharacterKey(member.name) !== normalizeCharacterKey(selfName));
         bb.writeMethod4(others.length);
         for (const member of others) {
+            bb.writeMethod11(member.online ? 1 : 0, 1);
             bb.writeMethod13(member.name);
             bb.writeMethod6(member.classId, 2);
             bb.writeMethod6(member.level, 6);
@@ -423,7 +429,7 @@ export class GuildHandler {
             return;
         }
 
-        const onlineMembers = GuildHandler.buildOnlineMemberSummaries(members);
+        const memberSummaries = GuildHandler.buildMemberSummaries(members);
         for (const record of members) {
             const session = GuildHandler.getOnlineSession(record.character.name);
             if (!session?.character) {
@@ -433,13 +439,13 @@ export class GuildHandler {
             session.character.guild = {
                 name: GuildHandler.getGuildName(record.character),
                 rank: GuildHandler.getGuildRank(record.character),
-                onlineMembers
+                onlineMembers: memberSummaries
             };
             GuildHandler.syncOnlineClientCharacter(session);
             session.send(0x56, GuildHandler.buildGuildUpdatePayload(
                 GuildHandler.getGuildName(record.character),
                 GuildHandler.getGuildRank(record.character),
-                onlineMembers,
+                memberSummaries,
                 session.character.name
             ));
         }
@@ -477,7 +483,7 @@ export class GuildHandler {
         client.character.guild = {
             name: GuildHandler.getGuildName(ownRecord.character),
             rank: GuildHandler.getGuildRank(ownRecord.character),
-            onlineMembers: GuildHandler.buildOnlineMemberSummaries(members)
+            onlineMembers: GuildHandler.buildMemberSummaries(members)
         };
         GuildHandler.syncOnlineClientCharacter(client);
     }

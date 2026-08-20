@@ -53,6 +53,9 @@ export interface HomeStatueSnapshot {
     pantColor: number;
     level: number;
     masterClass: number;
+    /** Guild shown under the statue's nameplate / in its inspect window, when the character had one. */
+    guildName?: string;
+    guildRank?: number;
     equippedGears: HomeStatueGear[];
     updatedAt: number;
 }
@@ -94,16 +97,20 @@ const HOME_STATUE_GEAR_SLOTS = 6;
  * So the walkable strip is world y=-1120 across x=4240..5000, with the entrance door at x~4056.
  * The three statues are spread across the middle of that strip, facing the door.
  *
- * Each statue loops a class-appropriate idle: Paladin sharpens, Rogue tosses a blade, Mage reads.
- * Those animations ride the *sleep* cue, never the drama cue, and that is not interchangeable:
- * `Entity.method_156()` refuses an entity as an interact target while `entState == DRAMA (2)`, so a
- * drama-posed statue could never be used - the gear window would simply never open. Sleep (1) is not
- * in that check, and `LinkUpdater` calls `BeginSleep()` on spawn, which hands
- * `cue.sleepAnim` to `Seq.method_34(..., loop = true)`.
+ * Each statue is posed on a class-appropriate animation: Paladin sharpens, Rogue points, Mage
+ * reads. Those animations ride the *sleep* cue, never the drama cue, and that is not
+ * interchangeable: `Entity.method_156()` refuses an entity as an interact target while
+ * `entState == DRAMA (2)`, so a drama-posed statue could never be used - the gear window would
+ * simply never open. Sleep (1) is not in that check, and `LinkUpdater` calls `BeginSleep()` on
+ * spawn, which hands `cue.sleepAnim` to `Seq.method_34(..., loop = true)`.
+ *
+ * The client patch `patch-dungeonblitz-home-statue-look.js` freezes the statue on the first frame
+ * of that animation (via `Seq.method_980`) and grayscales it, so it reads as a stone sculpture
+ * rather than an animated figure. `sleepAnim` therefore only picks the *pose*.
  */
 export const HOME_STATUE_SLOTS: readonly HomeStatueSlot[] = [
     { characterClass: 'Paladin', entityId: HOME_STATUE_ENTITY_ID_BASE + 1, x: 4400, y: -1120, facingLeft: true, sleepAnim: 'Sharpen' },
-    { characterClass: 'Rogue', entityId: HOME_STATUE_ENTITY_ID_BASE + 2, x: 4620, y: -1120, facingLeft: true, sleepAnim: 'Toss' },
+    { characterClass: 'Rogue', entityId: HOME_STATUE_ENTITY_ID_BASE + 2, x: 4620, y: -1120, facingLeft: true, sleepAnim: 'Point' },
     { characterClass: 'Mage', entityId: HOME_STATUE_ENTITY_ID_BASE + 3, x: 4840, y: -1120, facingLeft: true, sleepAnim: 'Read' }
 ];
 
@@ -185,6 +192,8 @@ export function buildHomeStatueSnapshot(character: Character | null | undefined)
         return null;
     }
 
+    const guild = (character as Record<string, unknown> | null)?.guild as Record<string, unknown> | null | undefined;
+
     return {
         characterName,
         characterClass,
@@ -199,6 +208,8 @@ export function buildHomeStatueSnapshot(character: Character | null | undefined)
         pantColor: Math.max(0, Math.round(Number(character.pantColor ?? 0)) || 0),
         level: Math.min(63, Math.max(1, Math.round(Number(character.level ?? 1)) || 1)),
         masterClass: Math.max(0, Math.round(Number(character.MasterClass ?? 0)) || 0),
+        guildName: String(guild?.['name'] ?? ''),
+        guildRank: Math.max(0, Math.round(Number(guild?.['rank'] ?? 0)) || 0),
         equippedGears: normalizeGearList(character.equippedGears),
         updatedAt: Date.now()
     };
@@ -230,6 +241,8 @@ function normalizeSnapshot(value: unknown): HomeStatueSnapshot | null {
         pantColor: Math.max(0, Math.round(Number(raw.pantColor ?? 0)) || 0),
         level: Math.min(63, Math.max(1, Math.round(Number(raw.level ?? 1)) || 1)),
         masterClass: Math.max(0, Math.round(Number(raw.masterClass ?? 0)) || 0),
+        guildName: String(raw.guildName ?? ''),
+        guildRank: Math.max(0, Math.round(Number(raw.guildRank ?? 0)) || 0),
         equippedGears: normalizeGearList(raw.equippedGears),
         updatedAt: Math.max(0, Math.round(Number(raw.updatedAt ?? 0)) || 0)
     };
@@ -355,6 +368,8 @@ export function buildHomeStatueEntity(slot: HomeStatueSlot, snapshot: HomeStatue
             runes: [...gear.runes],
             colors: [...gear.colors]
         })),
+        guildName: String(snapshot.guildName ?? ''),
+        guildRank: Number(snapshot.guildRank ?? 0),
         abilities: [],
         level: snapshot.level,
         masterClass: snapshot.masterClass,
